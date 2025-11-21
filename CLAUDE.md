@@ -6,7 +6,7 @@ Modern Honey Network (MHN) is being rewritten from Python/Flask to TypeScript/No
 
 **Current Branch:** You should be on a branch based off `origin/main` which contains the TypeScript implementation.
 
-**Overall Progress:** ~5% complete (3 of 60+ legacy features implemented)
+**Overall Progress:** ~25% complete (15 of 60+ legacy features implemented)
 
 **Why TypeScript?**
 - Strong type safety prevents entire classes of bugs
@@ -38,6 +38,61 @@ Modern Honey Network (MHN) is being rewritten from Python/Flask to TypeScript/No
 **Database Models Implemented:** 1 of 8 (User only)
 
 **API Endpoints Implemented:** 2 of 40+ legacy endpoints
+
+---
+
+### ✅ Phase 2: Authentication & Authorization (COMPLETE)
+
+**What's Implemented:**
+- ✅ Complete User model with all fields (active, confirmedAt, createdAt, updatedAt)
+- ✅ Role model with many-to-many relationship to Users
+- ✅ ApiKey model for API authentication
+- ✅ PasswdReset model for password recovery flow
+- ✅ JWT token generation and validation (access + refresh tokens)
+- ✅ Login/logout endpoints with token management
+- ✅ Password reset flow (request + confirm)
+- ✅ API key authentication
+- ✅ Role-based access control (RBAC)
+- ✅ Authentication guards/decorators (requireAuth, requireRole, requireApiKey, requireDeployKey)
+- ✅ Token blacklist for logout functionality
+- ✅ User management CRUD operations (GET, PUT, DELETE /api/user/:id)
+- ✅ Role management API (CRUD + assignment/removal)
+- ✅ API key management (create, list, delete)
+- ✅ Comprehensive test coverage (102 tests passing)
+
+**New Services:**
+- [auth.service.ts](api/src/services/auth.service.ts) - Login, logout, token refresh
+- [role.service.ts](api/src/services/role.service.ts) - Role management
+- [apikey.service.ts](api/src/services/apikey.service.ts) - API key operations
+- [password-reset.service.ts](api/src/services/password-reset.service.ts) - Password reset flow
+
+**New Routes:**
+- POST /api/auth/login - User login
+- POST /api/auth/logout - User logout
+- POST /api/auth/refresh - Refresh access token
+- GET /api/auth/me - Get current user
+- POST /api/auth/reset-request - Request password reset
+- POST /api/auth/reset-confirm - Confirm password reset
+- GET /api/role - List all roles (admin only)
+- POST /api/role - Create role (admin only)
+- GET /api/role/:id - Get role details (admin only)
+- DELETE /api/role/:id - Delete role (admin only)
+- POST /api/role/:roleId/assign/:userId - Assign role to user (admin only)
+- DELETE /api/role/:roleId/assign/:userId - Remove role from user (admin only)
+- GET /api/apikey - List user's API keys (authenticated)
+- POST /api/apikey - Create new API key (authenticated)
+- DELETE /api/apikey/:id - Delete API key (authenticated)
+- GET /api/user/:id - Get user details (authenticated)
+- PUT /api/user/:id - Update user (authenticated, own account or admin)
+- DELETE /api/user/:id - Delete user (admin only)
+
+**Lines of Code:** ~3,500+ (including tests)
+
+**Database Models Implemented:** 4 of 8 (User, Role, ApiKey, PasswdReset)
+
+**API Endpoints Implemented:** 18 of 40+ legacy endpoints
+
+**Test Coverage:** 102 tests passing, 4 skipped (unimplemented features)
 
 ---
 

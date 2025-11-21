@@ -3,6 +3,9 @@ import { FastifyInstance } from 'fastify';
 import sensible from '@fastify/sensible';
 import { helloHandler } from '../handlers/handlers';
 import userRoutes from './api/user.route';
+import authRoutes from './api/auth.route';
+import roleRoutes from './api/role.route';
+import apikeyRoutes from './api/apikey.route';
 import errorHandler from '../plugins/errorHandler';
 
 export default async function routes(fastify: FastifyInstance) {
@@ -36,5 +39,8 @@ export default async function routes(fastify: FastifyInstance) {
   await fastify.register(async (fastify) => {
     await fastify.register(errorHandler);
     await fastify.register(userRoutes);
+    await fastify.register(authRoutes);
+    await fastify.register(roleRoutes);
+    await fastify.register(apikeyRoutes);
   });
 }

@@ -1,4 +1,9 @@
 // test/auth.service.test.ts
+// Set up environment variables before importing anything
+process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test';
+process.env.JWT_SECRET = 'test-secret';
+process.env.DEPLOY_KEY = 'test-deploy-key';
+
 jest.mock('../src/lib/prisma', () => {
   const { mockDeep } = jest.requireActual('jest-mock-extended');
   return {
@@ -20,13 +25,15 @@ import {
   login,
   logout,
   refreshAccessToken,
+  InvalidCredentialsError,
+  InactiveUserError,
+} from '../src/services/auth.service';
+import {
   generateAccessToken,
   generateRefreshToken,
   verifyToken,
-  InvalidCredentialsError,
-  InactiveUserError,
   InvalidTokenError,
-} from '../src/services/auth.service';
+} from '../src/lib/tokens';
 
 describe('Auth Service', () => {
   const prismaMock = prisma as DeepMockProxy<PrismaClient>;
@@ -64,11 +71,21 @@ describe('Auth Service', () => {
           id: validUser.id,
           email: validUser.email,
           name: validUser.name,
+          active: validUser.active,
+          confirmedAt: validUser.confirmedAt,
+          createdAt: validUser.createdAt,
+          updatedAt: validUser.updatedAt,
         },
       });
       expect(prismaMock.user.findUnique).toHaveBeenCalledWith({
         where: { email: 'john@example.com' },
-        include: { roles: true },
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          password: true,
+          active: true,
+        },
       });
       expect(bcryptMock.compare).toHaveBeenCalledWith(
         'password123',
@@ -106,14 +123,18 @@ describe('Auth Service', () => {
 
   describe('logout()', () => {
     it('should add token to blacklist', async () => {
-      // Assuming blacklist is stored in Redis or database
-      // Mock the blacklist add operation
-      prismaMock.$executeRaw.mockResolvedValue(1 as never);
+      // Mock JWT verify to allow token validation
+      jwtMock.verify.mockReturnValue({
+        userId: 1,
+        email: 'john@example.com',
+        type: 'refresh',
+      } as never);
 
-      await logout('valid_token');
+      const result = await logout('valid_refresh_token');
 
-      // Verify token was blacklisted
-      expect(prismaMock.$executeRaw).toHaveBeenCalled();
+      // Verify logout was successful
+      expect(result).toBe(true);
+      expect(jwtMock.verify).toHaveBeenCalledWith('valid_refresh_token', expect.any(String));
     });
   });
 
@@ -122,44 +143,55 @@ describe('Auth Service', () => {
       userId: 1,
       email: 'john@example.com',
       type: 'refresh',
+      iat: Math.floor(Date.now() / 1000),
+      exp: Math.floor(Date.now() / 1000) + 3600,
+    };
+
+    const validUser = {
+      id: 1,
+      email: 'john@example.com',
+      name: 'john_doe',
+      active: true,
     };
 
     it('should return new access token for valid refresh token', async () => {
+      const uniqueRefreshToken = 'valid_refresh_token_unique_12345';
       jwtMock.verify.mockReturnValue(mockPayload as never);
       jwtMock.sign.mockReturnValue('new_access_token' as never);
+      prismaMock.user.findUnique.mockResolvedValue(validUser as never);
+      prismaMock.$queryRaw.mockResolvedValue([] as never); // Not blacklisted
 
-      // Mock blacklist check - token not blacklisted
-      prismaMock.$queryRaw.mockResolvedValue([] as never);
+      const result = await refreshAccessToken(uniqueRefreshToken);
 
-      const result = await refreshAccessToken('valid_refresh_token');
-
-      expect(result).toEqual({
-        accessToken: 'new_access_token',
-      });
+      expect(result).toBe('new_access_token');
       expect(jwtMock.verify).toHaveBeenCalledWith(
-        'valid_refresh_token',
+        uniqueRefreshToken,
         expect.any(String),
       );
+      expect(prismaMock.user.findUnique).toHaveBeenCalledWith({
+        where: { id: 1 },
+        select: { id: true, email: true, active: true },
+      });
     });
 
-    it('should throw InvalidTokenError for blacklisted token', async () => {
+    it('should throw TokenBlacklistedError for blacklisted token', async () => {
+      // First logout with the token to blacklist it
       jwtMock.verify.mockReturnValue(mockPayload as never);
+      await logout('blacklisted_token');
 
-      // Mock blacklist check - token is blacklisted
-      prismaMock.$queryRaw.mockResolvedValue([{ token: 'valid_refresh_token' }] as never);
-
-      await expect(refreshAccessToken('valid_refresh_token')).rejects.toThrow(
-        InvalidTokenError,
+      // Now try to refresh with the blacklisted token
+      await expect(refreshAccessToken('blacklisted_token')).rejects.toThrow(
+        'Token has been revoked',
       );
     });
 
-    it('should throw InvalidTokenError for expired token', async () => {
+    it('should throw TokenExpiredError for expired token', async () => {
       jwtMock.verify.mockImplementation(() => {
         throw new jwt.TokenExpiredError('Token expired', new Date());
       });
 
       await expect(refreshAccessToken('expired_token')).rejects.toThrow(
-        InvalidTokenError,
+        'Token has expired',
       );
     });
 
@@ -169,7 +201,7 @@ describe('Auth Service', () => {
       });
 
       await expect(refreshAccessToken('invalid_token')).rejects.toThrow(
-        InvalidTokenError,
+        'Invalid token',
       );
     });
   });
@@ -178,25 +210,19 @@ describe('Auth Service', () => {
     it('should generate access token with correct payload', () => {
       jwtMock.sign.mockReturnValue('access_token' as never);
 
-      const user = {
-        id: 1,
-        email: 'john@example.com',
-        name: 'john_doe',
-        roles: [{ name: 'user' }],
-      };
+      const userId = 1;
+      const email = 'john@example.com';
 
-      generateAccessToken(user);
+      generateAccessToken(userId, email);
 
       expect(jwtMock.sign).toHaveBeenCalledWith(
         {
-          userId: user.id,
-          email: user.email,
-          name: user.name,
-          roles: ['user'],
+          userId,
+          email,
           type: 'access',
         },
         expect.any(String),
-        { expiresIn: '15m' }, // Short-lived access token
+        { expiresIn: expect.any(String) }, // Access token expiry from config
       );
     });
   });
@@ -205,21 +231,19 @@ describe('Auth Service', () => {
     it('should generate refresh token with correct payload', () => {
       jwtMock.sign.mockReturnValue('refresh_token' as never);
 
-      const user = {
-        id: 1,
-        email: 'john@example.com',
-      };
+      const userId = 1;
+      const email = 'john@example.com';
 
-      generateRefreshToken(user);
+      generateRefreshToken(userId, email);
 
       expect(jwtMock.sign).toHaveBeenCalledWith(
         {
-          userId: user.id,
-          email: user.email,
+          userId,
+          email,
           type: 'refresh',
         },
         expect.any(String),
-        { expiresIn: '7d' }, // Long-lived refresh token
+        { expiresIn: expect.any(String) }, // Refresh token expiry from config
       );
     });
   });

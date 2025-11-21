@@ -1,4 +1,8 @@
 // test/api/user.test.ts
+// Set up environment variables before importing anything
+process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test';
+process.env.JWT_SECRET = 'test-secret';
+process.env.DEPLOY_KEY = 'test-deploy-key';
 jest.mock('../src/lib/prisma', () => {
   const { mockDeep } = jest.requireActual('jest-mock-extended');
   return {
@@ -52,6 +56,10 @@ describe('User API Routes', () => {
       prismaMock.user.create.mockResolvedValue({
         id: 1,
         ...validUser,
+        active: true,
+        confirmedAt: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
       });
 
       const response = await app.inject({
@@ -74,6 +82,10 @@ describe('User API Routes', () => {
       prismaMock.user.findFirst.mockResolvedValue({
         id: 1,
         ...validUser,
+        active: true,
+        confirmedAt: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
       });
       // Try to create another user with the same name
       const response = await app.inject({

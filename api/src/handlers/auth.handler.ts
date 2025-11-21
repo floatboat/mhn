@@ -15,7 +15,7 @@ import {
   ResetConfirmBody,
 } from '../types/auth.types';
 import { AuthenticatedRequest } from '../decorators/auth.decorators';
-import prisma from '../lib/prisma';
+import { prisma } from '../lib/prisma';
 
 /**
  * Handles user login
@@ -52,16 +52,14 @@ export async function loginHandler(
     if (error instanceof InvalidCredentialsError) {
       request.log.warn({ email: request.body.email }, 'Invalid credentials');
       return reply.status(401).send({
-        error: 'Unauthorized',
-        message: error.message,
+        error: error.message,
       });
     }
 
     if (error instanceof InactiveUserError) {
       request.log.warn({ email: request.body.email }, 'Inactive user account');
-      return reply.status(401).send({
-        error: 'Unauthorized',
-        message: error.message,
+      return reply.status(403).send({
+        error: error.message,
       });
     }
 
@@ -198,7 +196,7 @@ export async function getMeHandler(
       active: user.active,
       confirmedAt: user.confirmedAt?.toISOString() || null,
       createdAt: user.createdAt.toISOString(),
-      roles: user.roles.map((role) => role.name),
+      roles: user.roles.map((role: { name: string }) => role.name),
     });
   } catch (error) {
     request.log.error({ error }, 'Error fetching user info');
@@ -319,8 +317,7 @@ export async function resetConfirmHandler(
 
     if (!resetRecord) {
       return reply.status(400).send({
-        error: 'Bad Request',
-        message: 'Invalid or expired reset token',
+        error: 'Invalid or expired reset token',
       });
     }
 
@@ -333,8 +330,7 @@ export async function resetConfirmHandler(
       });
 
       return reply.status(400).send({
-        error: 'Bad Request',
-        message: 'Reset token has expired',
+        error: 'Invalid or expired reset token',
       });
     }
 
@@ -357,7 +353,7 @@ export async function resetConfirmHandler(
     request.log.info({ userId: resetRecord.userId }, 'Password reset successful');
 
     return reply.status(200).send({
-      message: 'Password has been reset successfully',
+      message: 'Password reset successfully',
     });
   } catch (error) {
     request.log.error({ error }, 'Password reset confirmation error');

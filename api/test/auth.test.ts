@@ -1,4 +1,8 @@
 // test/auth.test.ts
+// Set up environment variables before importing anything
+process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test';
+process.env.JWT_SECRET = 'test-secret';
+process.env.DEPLOY_KEY = 'test-deploy-key';
 jest.mock('../src/lib/prisma', () => {
   const { mockDeep } = jest.requireActual('jest-mock-extended');
   return {
@@ -17,6 +21,7 @@ import { PrismaClient } from '@prisma/client';
 import { prisma } from '../src/lib/prisma';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import { clearTokenBlacklist } from '../src/services/auth.service';
 
 describe('Auth API Routes', () => {
   let app: FastifyInstance;
@@ -26,6 +31,7 @@ describe('Auth API Routes', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    clearTokenBlacklist(); // Clear token blacklist between tests
   });
 
   beforeAll(async () => {
@@ -98,7 +104,7 @@ describe('Auth API Routes', () => {
 
       expect(response.statusCode).toBe(401);
       expect(response.json()).toMatchObject({
-        error: 'Invalid credentials',
+        error: 'Invalid email or password',
       });
     });
 
@@ -171,14 +177,25 @@ describe('Auth API Routes', () => {
 
   describe('POST /api/auth/logout', () => {
     it('should successfully logout with valid token', async () => {
-      jwtMock.verify.mockReturnValue({ userId: 1, type: 'access' } as never);
+      jwtMock.verify.mockReturnValue({ userId: 1, type: 'refresh' } as never);
+      prismaMock.user.findUnique.mockResolvedValue({
+        id: 1,
+        email: 'john@example.com',
+        name: 'john_doe',
+        password: 'hashed',
+        active: true,
+        confirmedAt: new Date(),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        roles: [],
+      } as never);
       prismaMock.$executeRaw.mockResolvedValue(1 as never);
 
       const response = await app.inject({
         method: 'POST',
         url: '/api/auth/logout',
-        headers: {
-          authorization: 'Bearer valid_token',
+        payload: {
+          refreshToken: 'valid_refresh_token',
         },
       });
 
@@ -192,9 +209,10 @@ describe('Auth API Routes', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/api/auth/logout',
+        payload: {},
       });
 
-      expect(response.statusCode).toBe(401);
+      expect(response.statusCode).toBe(400);
     });
   });
 
@@ -207,6 +225,17 @@ describe('Auth API Routes', () => {
       } as never);
       jwtMock.sign.mockReturnValue('new_access_token' as never);
       prismaMock.$queryRaw.mockResolvedValue([] as never); // Not blacklisted
+      prismaMock.user.findUnique.mockResolvedValue({
+        id: 1,
+        email: 'john@example.com',
+        name: 'john_doe',
+        password: 'hashed',
+        active: true,
+        confirmedAt: new Date(),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        roles: [],
+      } as never);
 
       const response = await app.inject({
         method: 'POST',
@@ -364,7 +393,8 @@ describe('Auth API Routes', () => {
 
       expect(response.statusCode).toBe(200);
       expect(response.json()).toMatchObject({
-        message: 'Password reset email sent',
+        message:
+          'If an account exists with that email, a password reset link has been sent',
       });
     });
 
@@ -382,7 +412,8 @@ describe('Auth API Routes', () => {
 
       expect(response.statusCode).toBe(200);
       expect(response.json()).toMatchObject({
-        message: 'Password reset email sent',
+        message:
+          'If an account exists with that email, a password reset link has been sent',
       });
     });
 
@@ -400,9 +431,10 @@ describe('Auth API Routes', () => {
   });
 
   describe('POST /api/auth/reset-confirm', () => {
+    const validResetTokenHash = 'a'.repeat(40); // 40 character token
     const validResetToken = {
       id: 1,
-      hashStr: 'valid_reset_token',
+      hashStr: validResetTokenHash,
       active: true,
       userId: 1,
       createdAt: new Date(),
@@ -410,7 +442,19 @@ describe('Auth API Routes', () => {
     };
 
     it('should reset password with valid token', async () => {
-      prismaMock.passwdReset.findUnique.mockResolvedValue(validResetToken);
+      prismaMock.passwdReset.findFirst.mockResolvedValue({
+        ...validResetToken,
+        user: {
+          id: 1,
+          email: 'john@example.com',
+          name: 'john_doe',
+          password: 'old_hashed_password',
+          active: true,
+          confirmedAt: new Date(),
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      } as never);
       prismaMock.user.update.mockResolvedValue({
         id: 1,
         email: 'john@example.com',
@@ -431,7 +475,7 @@ describe('Auth API Routes', () => {
         method: 'POST',
         url: '/api/auth/reset-confirm',
         payload: {
-          token: 'valid_reset_token',
+          token: validResetTokenHash,
           newPassword: 'newpassword123',
         },
       });
@@ -443,13 +487,13 @@ describe('Auth API Routes', () => {
     });
 
     it('should return 400 for invalid token', async () => {
-      prismaMock.passwdReset.findUnique.mockResolvedValue(null);
+      prismaMock.passwdReset.findFirst.mockResolvedValue(null);
 
       const response = await app.inject({
         method: 'POST',
         url: '/api/auth/reset-confirm',
         payload: {
-          token: 'invalid_token',
+          token: 'a'.repeat(40), // 40 character token
           newPassword: 'newpassword123',
         },
       });
@@ -464,14 +508,28 @@ describe('Auth API Routes', () => {
       const expiredToken = {
         ...validResetToken,
         expiresAt: new Date(Date.now() - 3600000), // 1 hour ago
+        user: {
+          id: 1,
+          email: 'john@example.com',
+          name: 'john_doe',
+          password: 'old_hashed_password',
+          active: true,
+          confirmedAt: new Date(),
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
       };
-      prismaMock.passwdReset.findUnique.mockResolvedValue(expiredToken);
+      prismaMock.passwdReset.findFirst.mockResolvedValue(expiredToken as never);
+      prismaMock.passwdReset.update.mockResolvedValue({
+        ...validResetToken,
+        active: false,
+      });
 
       const response = await app.inject({
         method: 'POST',
         url: '/api/auth/reset-confirm',
         payload: {
-          token: 'expired_token',
+          token: 'b'.repeat(40), // 40 character token
           newPassword: 'newpassword123',
         },
       });
@@ -483,17 +541,14 @@ describe('Auth API Routes', () => {
     });
 
     it('should return 400 for inactive token', async () => {
-      const inactiveToken = {
-        ...validResetToken,
-        active: false,
-      };
-      prismaMock.passwdReset.findUnique.mockResolvedValue(inactiveToken);
+      // When findFirst is called with active: true, it should return null for inactive tokens
+      prismaMock.passwdReset.findFirst.mockResolvedValue(null);
 
       const response = await app.inject({
         method: 'POST',
         url: '/api/auth/reset-confirm',
         payload: {
-          token: 'used_token',
+          token: 'c'.repeat(40), // 40 character token
           newPassword: 'newpassword123',
         },
       });

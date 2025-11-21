@@ -3,6 +3,7 @@ import { FastifyInstance } from 'fastify';
 import {
   listRolesHandler,
   createRoleHandler,
+  getRoleHandler,
   updateRoleHandler,
   assignRoleHandler,
   removeRoleHandler,
@@ -10,6 +11,7 @@ import {
 import {
   listRolesSchema,
   createRoleSchema,
+  getRoleSchema,
   updateRoleSchema,
   assignRoleSchema,
   removeRoleSchema,
@@ -46,6 +48,19 @@ export default async function roleRoutes(fastify: FastifyInstance) {
     schema: createRoleSchema,
     preHandler: [requireAuth, requireRole('admin')],
     handler: createRoleHandler,
+  });
+
+  /**
+   * Get a single role
+   * GET /api/role/:id
+   * Requires authentication
+   */
+  fastify.route({
+    method: 'GET',
+    url: '/role/:id',
+    schema: getRoleSchema,
+    preHandler: [requireAuth],
+    handler: getRoleHandler,
   });
 
   /**

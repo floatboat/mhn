@@ -1,6 +1,6 @@
 // src/handlers/role.handler.ts
 import { FastifyReply, FastifyRequest } from 'fastify';
-import prisma from '../lib/prisma';
+import { prisma } from '../lib/prisma';
 import { CreateRoleBody, UpdateRoleBody } from '../types/role.types';
 
 /**
@@ -50,7 +50,7 @@ export async function listRolesHandler(
       },
     });
 
-    const rolesWithCount = roles.map((role) => ({
+    const rolesWithCount = roles.map((role: any) => ({
       id: role.id,
       name: role.name,
       description: role.description,
@@ -116,8 +116,7 @@ export async function createRoleHandler(
   } catch (error) {
     if (error instanceof RoleExistsError) {
       return reply.status(409).send({
-        error: 'Conflict',
-        message: error.message,
+        error: error.message,
       });
     }
 
@@ -125,6 +124,63 @@ export async function createRoleHandler(
     return reply.status(500).send({
       error: 'Internal Server Error',
       message: 'An error occurred creating role',
+    });
+  }
+}
+
+/**
+ * Gets a single role by ID
+ * GET /api/role/:id
+ * Requires authentication
+ *
+ * @param request - Fastify request with role ID
+ * @param reply - Fastify reply
+ * @returns Role details
+ */
+export async function getRoleHandler(
+  request: FastifyRequest<{
+    Params: { id: string };
+  }>,
+  reply: FastifyReply,
+) {
+  try {
+    const roleId = parseInt(request.params.id);
+
+    request.log.info({ roleId }, 'Getting role');
+
+    // Find role with user count
+    const role = await prisma.role.findUnique({
+      where: { id: roleId },
+      include: {
+        _count: {
+          select: { users: true },
+        },
+      },
+    });
+
+    if (!role) {
+      throw new RoleNotFoundError('Role not found');
+    }
+
+    return reply.status(200).send({
+      id: role.id,
+      name: role.name,
+      description: role.description,
+      createdAt: role.createdAt.toISOString(),
+      updatedAt: role.updatedAt.toISOString(),
+      userCount: (role as any)._count.users,
+    });
+  } catch (error) {
+    if (error instanceof RoleNotFoundError) {
+      return reply.status(404).send({
+        error: error.message,
+      });
+    }
+
+    request.log.error({ error }, 'Error getting role');
+    return reply.status(500).send({
+      error: 'Internal Server Error',
+      message: 'An error occurred getting role',
     });
   }
 }
@@ -180,8 +236,7 @@ export async function updateRoleHandler(
   } catch (error) {
     if (error instanceof RoleNotFoundError) {
       return reply.status(404).send({
-        error: 'Not Found',
-        message: error.message,
+        error: error.message,
       });
     }
 
@@ -221,8 +276,7 @@ export async function assignRoleHandler(
 
     if (!role) {
       return reply.status(404).send({
-        error: 'Not Found',
-        message: 'Role not found',
+        error: 'Role not found',
       });
     }
 
@@ -234,13 +288,12 @@ export async function assignRoleHandler(
 
     if (!user) {
       return reply.status(404).send({
-        error: 'Not Found',
-        message: 'User not found',
+        error: 'User not found',
       });
     }
 
     // Check if user already has this role
-    if (user.roles.some((r) => r.id === roleId)) {
+    if (user.roles.some((r: any) => r.id === roleId)) {
       return reply.status(400).send({
         error: 'Bad Request',
         message: 'User already has this role',
@@ -299,8 +352,7 @@ export async function removeRoleHandler(
 
     if (!role) {
       return reply.status(404).send({
-        error: 'Not Found',
-        message: 'Role not found',
+        error: 'Role not found',
       });
     }
 
@@ -312,13 +364,12 @@ export async function removeRoleHandler(
 
     if (!user) {
       return reply.status(404).send({
-        error: 'Not Found',
-        message: 'User not found',
+        error: 'User not found',
       });
     }
 
     // Check if user has this role
-    if (!user.roles.some((r) => r.id === roleId)) {
+    if (!user.roles.some((r: any) => r.id === roleId)) {
       return reply.status(400).send({
         error: 'Bad Request',
         message: 'User does not have this role',

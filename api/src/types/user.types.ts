@@ -5,6 +5,13 @@ export interface CreateUserBody {
   password: string;
 }
 
+export interface UpdateUserBody {
+  name?: string;
+  email?: string;
+  password?: string;
+  active?: boolean;
+}
+
 export const createUserSchema = {
   body: {
     type: 'object',

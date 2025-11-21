@@ -10,6 +10,7 @@ import {
 } from '../../handlers/auth.handler';
 import {
   loginSchema,
+  logoutSchema,
   refreshSchema,
   resetRequestSchema,
   resetConfirmSchema,
@@ -42,7 +43,7 @@ export default async function authRoutes(fastify: FastifyInstance) {
   fastify.route({
     method: 'POST',
     url: '/auth/logout',
-    schema: refreshSchema, // Uses same schema as refresh (requires refreshToken)
+    schema: logoutSchema,
     handler: logoutHandler,
   });
 

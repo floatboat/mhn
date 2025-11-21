@@ -1,6 +1,6 @@
 // src/handlers/apikey.handler.ts
 import { FastifyReply, FastifyRequest } from 'fastify';
-import prisma from '../lib/prisma';
+import { prisma } from '../lib/prisma';
 import { AuthenticatedRequest } from '../decorators/auth.decorators';
 import crypto from 'crypto';
 
@@ -52,7 +52,12 @@ export async function listApiKeysHandler(
       },
     });
 
-    const apiKeysList = apiKeys.map((key) => ({
+    const apiKeysList = apiKeys.map((key: {
+      id: number;
+      apiKey: string;
+      createdAt: Date;
+      user: { id: number; name: string; email: string };
+    }) => ({
       id: key.id,
       apiKey: key.apiKey,
       createdAt: key.createdAt.toISOString(),
@@ -181,8 +186,7 @@ export async function deleteApiKeyHandler(
     // Check if user owns this API key or is admin
     if (apiKey.userId !== userId && !isAdmin) {
       return reply.status(403).send({
-        error: 'Forbidden',
-        message: 'You can only delete your own API keys',
+        error: 'Cannot delete API key that belongs to another user',
       });
     }
 
@@ -199,8 +203,7 @@ export async function deleteApiKeyHandler(
   } catch (error) {
     if (error instanceof ApiKeyNotFoundError) {
       return reply.status(404).send({
-        error: 'Not Found',
-        message: error.message,
+        error: error.message,
       });
     }
 

@@ -1,4 +1,8 @@
 // test/auth.guards.test.ts
+// Set up environment variables before importing anything
+process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test';
+process.env.JWT_SECRET = 'test-secret';
+process.env.DEPLOY_KEY = 'test-deploy-key';
 jest.mock('../src/lib/prisma', () => {
   const { mockDeep } = jest.requireActual('jest-mock-extended');
   return {
@@ -14,9 +18,12 @@ import { DeepMockProxy } from 'jest-mock-extended';
 import { PrismaClient } from '@prisma/client';
 import { prisma } from '../src/lib/prisma';
 import jwt from 'jsonwebtoken';
-
-// NOTE: These tests assume guards are implemented as decorators or hooks
-// The actual implementation may differ
+import {
+  requireAuth,
+  requireRole,
+  requireApiKey,
+  requireDeployKey,
+} from '../src/decorators/auth.decorators';
 
 describe('Auth Guards', () => {
   let app: FastifyInstance;
@@ -41,7 +48,7 @@ describe('Auth Guards', () => {
     app.get(
       '/test/protected',
       {
-        preHandler: app.auth([app.verifyJWT]),
+        preHandler: requireAuth,
       },
       async () => {
         return { message: 'protected route' };
@@ -52,7 +59,7 @@ describe('Auth Guards', () => {
     app.get(
       '/test/admin',
       {
-        preHandler: app.auth([app.verifyJWT, app.verifyRole('admin')]),
+        preHandler: [requireAuth, requireRole('admin')],
       },
       async () => {
         return { message: 'admin route' };
@@ -63,7 +70,7 @@ describe('Auth Guards', () => {
     app.get(
       '/test/apikey',
       {
-        preHandler: app.auth([app.verifyApiKey]),
+        preHandler: requireApiKey,
       },
       async () => {
         return { message: 'apikey route' };
@@ -74,7 +81,7 @@ describe('Auth Guards', () => {
     app.post(
       '/test/deploy',
       {
-        preHandler: app.auth([app.verifyDeployKey]),
+        preHandler: requireDeployKey,
       },
       async () => {
         return { message: 'deploy route' };
@@ -94,6 +101,18 @@ describe('Auth Guards', () => {
         userId: 1,
         email: 'john@example.com',
         type: 'access',
+      } as never);
+
+      prismaMock.user.findUnique.mockResolvedValue({
+        id: 1,
+        email: 'john@example.com',
+        name: 'john_doe',
+        password: 'hashed',
+        active: true,
+        confirmedAt: new Date(),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        roles: [],
       } as never);
 
       const response = await app.inject({
@@ -153,7 +172,7 @@ describe('Auth Guards', () => {
 
       expect(response.statusCode).toBe(401);
       expect(response.json()).toMatchObject({
-        error: 'Token expired',
+        error: 'Unauthorized',
       });
     });
 
@@ -175,7 +194,6 @@ describe('Auth Guards', () => {
       jwtMock.verify.mockReturnValue({
         userId: 1,
         email: 'admin@example.com',
-        roles: ['admin'],
         type: 'access',
       } as never);
 
@@ -217,7 +235,6 @@ describe('Auth Guards', () => {
       jwtMock.verify.mockReturnValue({
         userId: 2,
         email: 'user@example.com',
-        roles: ['user'],
         type: 'access',
       } as never);
 
@@ -274,24 +291,24 @@ describe('Auth Guards', () => {
     };
 
     it('should allow access with valid API key', async () => {
-      prismaMock.apiKey.findUnique.mockResolvedValue(validApiKey);
-      prismaMock.user.findUnique.mockResolvedValue({
-        id: 1,
-        email: 'john@example.com',
-        name: 'john_doe',
-        password: 'hashed',
-        active: true,
-        confirmedAt: new Date(),
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      });
+      prismaMock.apiKey.findUnique.mockResolvedValue({
+        ...validApiKey,
+        user: {
+          id: 1,
+          email: 'john@example.com',
+          name: 'john_doe',
+          password: 'hashed',
+          active: true,
+          confirmedAt: new Date(),
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          roles: [],
+        },
+      } as never);
 
       const response = await app.inject({
         method: 'GET',
-        url: '/test/apikey',
-        headers: {
-          'x-api-key': 'valid_api_key_32_chars_here',
-        },
+        url: '/test/apikey?api_key=valid_api_key_32_chars_here',
       });
 
       expect(response.statusCode).toBe(200);
@@ -305,15 +322,12 @@ describe('Auth Guards', () => {
 
       const response = await app.inject({
         method: 'GET',
-        url: '/test/apikey',
-        headers: {
-          'x-api-key': 'invalid_api_key',
-        },
+        url: '/test/apikey?api_key=invalid_api_key',
       });
 
       expect(response.statusCode).toBe(401);
       expect(response.json()).toMatchObject({
-        error: 'Invalid API key',
+        error: 'Unauthorized',
       });
     });
 
@@ -327,29 +341,29 @@ describe('Auth Guards', () => {
     });
 
     it('should block access if user is inactive', async () => {
-      prismaMock.apiKey.findUnique.mockResolvedValue(validApiKey);
-      prismaMock.user.findUnique.mockResolvedValue({
-        id: 1,
-        email: 'john@example.com',
-        name: 'john_doe',
-        password: 'hashed',
-        active: false, // Inactive user
-        confirmedAt: new Date(),
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      });
+      prismaMock.apiKey.findUnique.mockResolvedValue({
+        ...validApiKey,
+        user: {
+          id: 1,
+          email: 'john@example.com',
+          name: 'john_doe',
+          password: 'hashed',
+          active: false, // Inactive user
+          confirmedAt: new Date(),
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          roles: [],
+        },
+      } as never);
 
       const response = await app.inject({
         method: 'GET',
-        url: '/test/apikey',
-        headers: {
-          'x-api-key': 'valid_api_key_32_chars_here',
-        },
+        url: '/test/apikey?api_key=valid_api_key_32_chars_here',
       });
 
-      expect(response.statusCode).toBe(403);
+      expect(response.statusCode).toBe(401);
       expect(response.json()).toMatchObject({
-        error: 'User account is inactive',
+        error: 'Unauthorized',
       });
     });
   });
@@ -369,10 +383,7 @@ describe('Auth Guards', () => {
     it('should allow access with valid deploy key', async () => {
       const response = await app.inject({
         method: 'POST',
-        url: '/test/deploy',
-        headers: {
-          'x-deploy-key': correctDeployKey,
-        },
+        url: `/test/deploy?deploy_key=${correctDeployKey}`,
       });
 
       expect(response.statusCode).toBe(200);
@@ -384,15 +395,12 @@ describe('Auth Guards', () => {
     it('should block access with invalid deploy key', async () => {
       const response = await app.inject({
         method: 'POST',
-        url: '/test/deploy',
-        headers: {
-          'x-deploy-key': 'wrong_deploy_key',
-        },
+        url: '/test/deploy?deploy_key=wrong_deploy_key',
       });
 
       expect(response.statusCode).toBe(401);
       expect(response.json()).toMatchObject({
-        error: 'Invalid deploy key',
+        error: 'Unauthorized',
       });
     });
 

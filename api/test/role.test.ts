@@ -1,4 +1,8 @@
 // test/role.test.ts
+// Set up environment variables before importing anything
+process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test';
+process.env.JWT_SECRET = 'test-secret';
+process.env.DEPLOY_KEY = 'test-deploy-key';
 jest.mock('../src/lib/prisma', () => {
   const { mockDeep } = jest.requireActual('jest-mock-extended');
   return {
@@ -53,6 +57,9 @@ describe('Role API Routes', () => {
         description: 'Administrator role',
         createdAt: new Date(),
         updatedAt: new Date(),
+        _count: {
+          users: 3,
+        },
       },
       {
         id: 2,
@@ -60,6 +67,9 @@ describe('Role API Routes', () => {
         description: 'Regular user role',
         createdAt: new Date(),
         updatedAt: new Date(),
+        _count: {
+          users: 10,
+        },
       },
     ];
 
@@ -67,8 +77,25 @@ describe('Role API Routes', () => {
       jwtMock.verify.mockReturnValue({
         userId: 1,
         email: 'admin@example.com',
-        roles: ['admin'],
         type: 'access',
+      } as never);
+
+      prismaMock.user.findUnique.mockResolvedValue({
+        id: 1,
+        email: 'admin@example.com',
+        name: 'admin',
+        password: 'hashed',
+        active: true,
+        confirmedAt: new Date(),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        roles: [{
+          id: 1,
+          name: 'admin',
+          description: 'Administrator',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        }],
       } as never);
 
       prismaMock.role.findMany.mockResolvedValue(roles);
@@ -104,8 +131,25 @@ describe('Role API Routes', () => {
       jwtMock.verify.mockReturnValue({
         userId: 1,
         email: 'admin@example.com',
-        roles: ['admin'],
         type: 'access',
+      } as never);
+
+      prismaMock.user.findUnique.mockResolvedValue({
+        id: 1,
+        email: 'admin@example.com',
+        name: 'admin',
+        password: 'hashed',
+        active: true,
+        confirmedAt: new Date(),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        roles: [{
+          id: 1,
+          name: 'admin',
+          description: 'Administrator',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        }],
       } as never);
 
       prismaMock.role.findUnique.mockResolvedValue(null); // Role doesn't exist
@@ -141,8 +185,25 @@ describe('Role API Routes', () => {
       jwtMock.verify.mockReturnValue({
         userId: 2,
         email: 'user@example.com',
-        roles: ['user'],
         type: 'access',
+      } as never);
+
+      prismaMock.user.findUnique.mockResolvedValue({
+        id: 2,
+        email: 'user@example.com',
+        name: 'user',
+        password: 'hashed',
+        active: true,
+        confirmedAt: new Date(),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        roles: [{
+          id: 2,
+          name: 'user',
+          description: 'Regular user',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        }],
       } as never);
 
       const response = await app.inject({
@@ -164,8 +225,25 @@ describe('Role API Routes', () => {
       jwtMock.verify.mockReturnValue({
         userId: 1,
         email: 'admin@example.com',
-        roles: ['admin'],
         type: 'access',
+      } as never);
+
+      prismaMock.user.findUnique.mockResolvedValue({
+        id: 1,
+        email: 'admin@example.com',
+        name: 'admin',
+        password: 'hashed',
+        active: true,
+        confirmedAt: new Date(),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        roles: [{
+          id: 1,
+          name: 'admin',
+          description: 'Administrator',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        }],
       } as never);
 
       prismaMock.role.findUnique.mockResolvedValue({
@@ -190,7 +268,7 @@ describe('Role API Routes', () => {
 
       expect(response.statusCode).toBe(409);
       expect(response.json()).toMatchObject({
-        error: 'Role with this name already exists',
+        error: "Role 'admin' already exists",
       });
     });
 
@@ -222,25 +300,45 @@ describe('Role API Routes', () => {
       jwtMock.verify.mockReturnValue({
         userId: 1,
         email: 'admin@example.com',
-        roles: ['admin'],
         type: 'access',
       } as never);
 
-      prismaMock.role.findUnique.mockResolvedValue({
-        id: 2,
-        name: 'user',
-        description: 'Regular user',
+      // First call: auth guard fetches logged-in admin user
+      prismaMock.user.findUnique.mockResolvedValueOnce({
+        id: 1,
+        email: 'admin@example.com',
+        name: 'admin',
+        password: 'hashed',
+        active: true,
+        confirmedAt: new Date(),
         createdAt: new Date(),
         updatedAt: new Date(),
-      });
+        roles: [{
+          id: 1,
+          name: 'admin',
+          description: 'Administrator',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        }],
+      } as never);
 
-      prismaMock.user.findUnique.mockResolvedValue({
+      // Second call: handler fetches target user to assign role
+      prismaMock.user.findUnique.mockResolvedValueOnce({
         id: 3,
         email: 'newuser@example.com',
         name: 'newuser',
         password: 'hashed',
         active: true,
         confirmedAt: new Date(),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        roles: [],
+      } as never);
+
+      prismaMock.role.findUnique.mockResolvedValue({
+        id: 2,
+        name: 'user',
+        description: 'Regular user',
         createdAt: new Date(),
         updatedAt: new Date(),
       });
@@ -266,7 +364,7 @@ describe('Role API Routes', () => {
 
       expect(response.statusCode).toBe(200);
       expect(response.json()).toMatchObject({
-        message: 'Role assigned successfully',
+        message: "Role 'user' assigned to user successfully",
       });
     });
 
@@ -274,8 +372,25 @@ describe('Role API Routes', () => {
       jwtMock.verify.mockReturnValue({
         userId: 2,
         email: 'user@example.com',
-        roles: ['user'],
         type: 'access',
+      } as never);
+
+      prismaMock.user.findUnique.mockResolvedValue({
+        id: 2,
+        email: 'user@example.com',
+        name: 'user',
+        password: 'hashed',
+        active: true,
+        confirmedAt: new Date(),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        roles: [{
+          id: 2,
+          name: 'user',
+          description: 'Regular user',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        }],
       } as never);
 
       const response = await app.inject({
@@ -293,8 +408,25 @@ describe('Role API Routes', () => {
       jwtMock.verify.mockReturnValue({
         userId: 1,
         email: 'admin@example.com',
-        roles: ['admin'],
         type: 'access',
+      } as never);
+
+      prismaMock.user.findUnique.mockResolvedValue({
+        id: 1,
+        email: 'admin@example.com',
+        name: 'admin',
+        password: 'hashed',
+        active: true,
+        confirmedAt: new Date(),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        roles: [{
+          id: 1,
+          name: 'admin',
+          description: 'Administrator',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        }],
       } as never);
 
       prismaMock.role.findUnique.mockResolvedValue(null);
@@ -317,9 +449,30 @@ describe('Role API Routes', () => {
       jwtMock.verify.mockReturnValue({
         userId: 1,
         email: 'admin@example.com',
-        roles: ['admin'],
         type: 'access',
       } as never);
+
+      // First call: auth guard fetches logged-in admin
+      prismaMock.user.findUnique.mockResolvedValueOnce({
+        id: 1,
+        email: 'admin@example.com',
+        name: 'admin',
+        password: 'hashed',
+        active: true,
+        confirmedAt: new Date(),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        roles: [{
+          id: 1,
+          name: 'admin',
+          description: 'Administrator',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        }],
+      } as never);
+
+      // Second call: handler tries to fetch target user (doesn't exist)
+      prismaMock.user.findUnique.mockResolvedValueOnce(null);
 
       prismaMock.role.findUnique.mockResolvedValue({
         id: 2,
@@ -328,8 +481,6 @@ describe('Role API Routes', () => {
         createdAt: new Date(),
         updatedAt: new Date(),
       });
-
-      prismaMock.user.findUnique.mockResolvedValue(null);
 
       const response = await app.inject({
         method: 'POST',
@@ -355,6 +506,25 @@ describe('Role API Routes', () => {
         type: 'access',
       } as never);
 
+      // First call: auth decorator fetches admin user
+      prismaMock.user.findUnique.mockResolvedValueOnce({
+        id: 1,
+        email: 'admin@example.com',
+        name: 'admin',
+        password: 'hashed',
+        active: true,
+        confirmedAt: new Date(),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        roles: [{
+          id: 1,
+          name: 'admin',
+          description: 'Administrator',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        }],
+      } as never);
+
       prismaMock.role.findUnique.mockResolvedValue({
         id: 2,
         name: 'user',
@@ -363,7 +533,8 @@ describe('Role API Routes', () => {
         updatedAt: new Date(),
       });
 
-      prismaMock.user.findUnique.mockResolvedValue({
+      // Second call: handler fetches target user to remove role from
+      prismaMock.user.findUnique.mockResolvedValueOnce({
         id: 3,
         email: 'newuser@example.com',
         name: 'newuser',
@@ -372,7 +543,14 @@ describe('Role API Routes', () => {
         confirmedAt: new Date(),
         createdAt: new Date(),
         updatedAt: new Date(),
-      });
+        roles: [{
+          id: 2,
+          name: 'user',
+          description: 'Regular user',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        }],
+      } as never);
 
       prismaMock.user.update.mockResolvedValue({
         id: 3,
@@ -395,7 +573,7 @@ describe('Role API Routes', () => {
 
       expect(response.statusCode).toBe(200);
       expect(response.json()).toMatchObject({
-        message: 'Role removed successfully',
+        message: "Role 'user' removed from user successfully",
       });
     });
 
@@ -405,6 +583,24 @@ describe('Role API Routes', () => {
         email: 'user@example.com',
         roles: ['user'],
         type: 'access',
+      } as never);
+
+      prismaMock.user.findUnique.mockResolvedValue({
+        id: 2,
+        email: 'user@example.com',
+        name: 'user',
+        password: 'hashed',
+        active: true,
+        confirmedAt: new Date(),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        roles: [{
+          id: 2,
+          name: 'user',
+          description: 'Regular user',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        }],
       } as never);
 
       const response = await app.inject({
@@ -428,13 +624,34 @@ describe('Role API Routes', () => {
         type: 'access',
       } as never);
 
+      prismaMock.user.findUnique.mockResolvedValue({
+        id: 1,
+        email: 'admin@example.com',
+        name: 'admin',
+        password: 'hashed',
+        active: true,
+        confirmedAt: new Date(),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        roles: [{
+          id: 1,
+          name: 'admin',
+          description: 'Administrator',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        }],
+      } as never);
+
       prismaMock.role.findUnique.mockResolvedValue({
         id: 1,
         name: 'admin',
         description: 'Administrator role',
         createdAt: new Date(),
         updatedAt: new Date(),
-      });
+        _count: {
+          users: 5,
+        },
+      } as never);
 
       const response = await app.inject({
         method: 'GET',
@@ -449,6 +666,7 @@ describe('Role API Routes', () => {
       expect(body).toMatchObject({
         name: 'admin',
         description: 'Administrator role',
+        userCount: 5,
       });
     });
 
@@ -458,6 +676,24 @@ describe('Role API Routes', () => {
         email: 'admin@example.com',
         roles: ['admin'],
         type: 'access',
+      } as never);
+
+      prismaMock.user.findUnique.mockResolvedValue({
+        id: 1,
+        email: 'admin@example.com',
+        name: 'admin',
+        password: 'hashed',
+        active: true,
+        confirmedAt: new Date(),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        roles: [{
+          id: 1,
+          name: 'admin',
+          description: 'Administrator',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        }],
       } as never);
 
       prismaMock.role.findUnique.mockResolvedValue(null);

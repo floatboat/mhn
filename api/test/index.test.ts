@@ -1,4 +1,8 @@
 // test/root.test.ts
+// Set up environment variables before importing anything
+process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test';
+process.env.JWT_SECRET = 'test-secret';
+process.env.DEPLOY_KEY = 'test-deploy-key';
 import Fastify, { FastifyInstance } from 'fastify';
 import sensible from '@fastify/sensible';
 import rootRoutes from '../src/routes/index';

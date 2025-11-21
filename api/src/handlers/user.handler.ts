@@ -6,7 +6,7 @@ import {
 } from '../services/user.service';
 import { CreateUserBody, UpdateUserBody } from '../types/user.types';
 import { AuthenticatedRequest } from '../decorators/auth.decorators';
-import prisma from '../lib/prisma';
+import { prisma } from '../lib/prisma';
 
 /**
  * Lists all users (returns usernames only)
@@ -114,8 +114,8 @@ export async function getUserHandler(
       confirmedAt: user.confirmedAt?.toISOString() || null,
       createdAt: user.createdAt.toISOString(),
       updatedAt: user.updatedAt.toISOString(),
-      roles: user.roles.map((role) => role.name),
-      apiKeys: user.apiKeys.map((key) => ({
+      roles: user.roles.map((role: { name: string }) => role.name),
+      apiKeys: user.apiKeys.map((key: { id: number; apiKey: string; createdAt: Date }) => ({
         id: key.id,
         apiKey: key.apiKey,
         createdAt: key.createdAt.toISOString(),
@@ -212,7 +212,7 @@ export async function updateUserHandler(
       confirmedAt: updatedUser.confirmedAt?.toISOString() || null,
       createdAt: updatedUser.createdAt.toISOString(),
       updatedAt: updatedUser.updatedAt.toISOString(),
-      roles: updatedUser.roles.map((role) => role.name),
+      roles: updatedUser.roles.map((role: { name: string }) => role.name),
     });
   } catch (error) {
     request.log.error({ error }, 'Error updating user');

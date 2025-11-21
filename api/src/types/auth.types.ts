@@ -112,6 +112,27 @@ export const loginSchema = {
 /**
  * Schema for refresh token request
  */
+export const logoutSchema = {
+  body: {
+    type: 'object',
+    required: ['refreshToken'],
+    properties: {
+      refreshToken: {
+        type: 'string',
+        description: 'Refresh token to invalidate',
+      },
+    },
+  },
+  response: {
+    200: {
+      type: 'object',
+      properties: {
+        message: { type: 'string' },
+      },
+    },
+  },
+} as const;
+
 export const refreshSchema = {
   body: {
     type: 'object',

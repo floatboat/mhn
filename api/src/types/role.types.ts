@@ -122,6 +122,36 @@ export const listRolesSchema = {
 } as const;
 
 /**
+ * Schema for getting a single role
+ */
+export const getRoleSchema = {
+  params: {
+    type: 'object',
+    required: ['id'],
+    properties: {
+      id: {
+        type: 'string',
+        pattern: '^[0-9]+$',
+        description: 'Role ID',
+      },
+    },
+  },
+  response: {
+    200: {
+      type: 'object',
+      properties: {
+        id: { type: 'number' },
+        name: { type: 'string' },
+        description: { type: ['string', 'null'] },
+        createdAt: { type: 'string' },
+        updatedAt: { type: 'string' },
+        userCount: { type: 'number' },
+      },
+    },
+  },
+} as const;
+
+/**
  * Schema for assigning role to user
  */
 export const assignRoleSchema = {

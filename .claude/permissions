@@ -1,0 +1,36 @@
+{
+  "tools": {
+    "Bash": {
+      "allow": [
+        "npm install*",
+        "npm test*",
+        "npm run*",
+        "npm ci*",
+        "npx prisma*",
+        "npx tsc*",
+        "git status*",
+        "git diff*",
+        "git log*",
+        "git add*",
+        "cd *",
+        "ls*",
+        "cat*",
+        "head*",
+        "tail*",
+        "grep*",
+        "find*",
+        "wc*",
+        "mkdir*",
+        "cp*",
+        "mv*",
+        "pwd*",
+        "echo*",
+        "sleep*",
+        "docker ps*",
+        "docker-compose up*",
+        "docker-compose down*",
+        "docker logs*"
+      ]
+    }
+  }
+}

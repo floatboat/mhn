@@ -1,7 +1,7 @@
 // src/decorators/auth.decorators.ts
 import { FastifyReply, FastifyRequest, preHandlerHookHandler } from 'fastify';
 import jwt from 'jsonwebtoken';
-import prisma from '../lib/prisma';
+import { prisma } from '../lib/prisma';
 
 /**
  * Extended FastifyRequest interface with user information
