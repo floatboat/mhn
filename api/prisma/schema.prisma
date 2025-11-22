@@ -25,7 +25,7 @@ model User {
   updatedAt   DateTime  @updatedAt
 
   // Relationships
-  roles         Role[]        @relation("UserRoles")
+  roles         Role[]         @relation("UserRoles")
   apiKeys       ApiKey[]
   resetTokens   PasswdReset[]
   deployScripts DeployScript[]
@@ -78,7 +78,7 @@ model PasswdReset {
 // Deploy Script model (for future Phase 5)
 model DeployScript {
   id        Int      @id @default(autoincrement())
-  name      String   // e.g., "Ubuntu - Dionaea"
+  name      String // e.g., "Ubuntu - Dionaea"
   script    String   @db.Text // Shell script content (large text)
   notes     String   @db.Text
   user      User     @relation(fields: [userId], references: [id])
@@ -87,4 +87,21 @@ model DeployScript {
   updatedAt DateTime @updatedAt
 
   @@index([userId])
+}
+
+// Sensor model for honeypot instances (Phase 3 - Core MHN Functionality)
+model Sensor {
+  id         Int      @id @default(autoincrement())
+  uuid       String   @unique // UUID v1
+  name       String
+  hostname   String
+  ip         String // Auto-detected from request
+  identifier String   @unique // Same as UUID (for HPFeeds)
+  honeypot   String // Type: dionaea, cowrie, conpot, etc.
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([uuid])
+  @@index([identifier])
+  @@index([honeypot])
 }

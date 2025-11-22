@@ -8,6 +8,9 @@ const config: Config.InitialOptions = {
   transform: {
     '^.+\\.ts$': 'ts-jest',
   },
+  moduleNameMapper: {
+    '^uuid$': '<rootDir>/test/__mocks__/uuid.ts',
+  },
 };
 
 export default config;
