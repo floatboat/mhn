@@ -35,6 +35,18 @@ async function roleRoutes(fastify) {
         handler: role_handler_1.createRoleHandler,
     });
     /**
+     * Get a single role
+     * GET /api/role/:id
+     * Requires authentication
+     */
+    fastify.route({
+        method: 'GET',
+        url: '/role/:id',
+        schema: role_types_1.getRoleSchema,
+        preHandler: [auth_decorators_1.requireAuth],
+        handler: role_handler_1.getRoleHandler,
+    });
+    /**
      * Update a role
      * PUT /api/role/:id
      * Requires admin role

@@ -1,7 +1,7 @@
 "use strict";
 // src/types/role.types.ts
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.removeRoleSchema = exports.assignRoleSchema = exports.listRolesSchema = exports.updateRoleSchema = exports.createRoleSchema = void 0;
+exports.removeRoleSchema = exports.assignRoleSchema = exports.getRoleSchema = exports.listRolesSchema = exports.updateRoleSchema = exports.createRoleSchema = void 0;
 // JSON Schemas for request validation
 /**
  * Schema for creating a role
@@ -82,6 +82,35 @@ exports.listRolesSchema = {
                     updatedAt: { type: 'string' },
                     userCount: { type: 'number' },
                 },
+            },
+        },
+    },
+};
+/**
+ * Schema for getting a single role
+ */
+exports.getRoleSchema = {
+    params: {
+        type: 'object',
+        required: ['id'],
+        properties: {
+            id: {
+                type: 'string',
+                pattern: '^[0-9]+$',
+                description: 'Role ID',
+            },
+        },
+    },
+    response: {
+        200: {
+            type: 'object',
+            properties: {
+                id: { type: 'number' },
+                name: { type: 'string' },
+                description: { type: ['string', 'null'] },
+                createdAt: { type: 'string' },
+                updatedAt: { type: 'string' },
+                userCount: { type: 'number' },
             },
         },
     },

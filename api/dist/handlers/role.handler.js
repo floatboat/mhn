@@ -1,15 +1,13 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.RoleNotFoundError = exports.RoleExistsError = void 0;
 exports.listRolesHandler = listRolesHandler;
 exports.createRoleHandler = createRoleHandler;
+exports.getRoleHandler = getRoleHandler;
 exports.updateRoleHandler = updateRoleHandler;
 exports.assignRoleHandler = assignRoleHandler;
 exports.removeRoleHandler = removeRoleHandler;
-const prisma_1 = __importDefault(require("../lib/prisma"));
+const prisma_1 = require("../lib/prisma");
 /**
  * Custom error for role already exists
  */
@@ -43,7 +41,7 @@ exports.RoleNotFoundError = RoleNotFoundError;
  */
 async function listRolesHandler(request, reply) {
     try {
-        const roles = await prisma_1.default.role.findMany({
+        const roles = await prisma_1.prisma.role.findMany({
             include: {
                 _count: {
                     select: { users: true },
@@ -85,14 +83,14 @@ async function createRoleHandler(request, reply) {
         const { name, description } = request.body;
         request.log.info({ name }, 'Creating role');
         // Check if role already exists
-        const existingRole = await prisma_1.default.role.findUnique({
+        const existingRole = await prisma_1.prisma.role.findUnique({
             where: { name },
         });
         if (existingRole) {
             throw new RoleExistsError(`Role '${name}' already exists`);
         }
         // Create role
-        const role = await prisma_1.default.role.create({
+        const role = await prisma_1.prisma.role.create({
             data: {
                 name,
                 description: description || null,
@@ -110,14 +108,60 @@ async function createRoleHandler(request, reply) {
     catch (error) {
         if (error instanceof RoleExistsError) {
             return reply.status(409).send({
-                error: 'Conflict',
-                message: error.message,
+                error: error.message,
             });
         }
         request.log.error({ error }, 'Error creating role');
         return reply.status(500).send({
             error: 'Internal Server Error',
             message: 'An error occurred creating role',
+        });
+    }
+}
+/**
+ * Gets a single role by ID
+ * GET /api/role/:id
+ * Requires authentication
+ *
+ * @param request - Fastify request with role ID
+ * @param reply - Fastify reply
+ * @returns Role details
+ */
+async function getRoleHandler(request, reply) {
+    try {
+        const roleId = parseInt(request.params.id);
+        request.log.info({ roleId }, 'Getting role');
+        // Find role with user count
+        const role = await prisma_1.prisma.role.findUnique({
+            where: { id: roleId },
+            include: {
+                _count: {
+                    select: { users: true },
+                },
+            },
+        });
+        if (!role) {
+            throw new RoleNotFoundError('Role not found');
+        }
+        return reply.status(200).send({
+            id: role.id,
+            name: role.name,
+            description: role.description,
+            createdAt: role.createdAt.toISOString(),
+            updatedAt: role.updatedAt.toISOString(),
+            userCount: role._count.users,
+        });
+    }
+    catch (error) {
+        if (error instanceof RoleNotFoundError) {
+            return reply.status(404).send({
+                error: error.message,
+            });
+        }
+        request.log.error({ error }, 'Error getting role');
+        return reply.status(500).send({
+            error: 'Internal Server Error',
+            message: 'An error occurred getting role',
         });
     }
 }
@@ -136,14 +180,14 @@ async function updateRoleHandler(request, reply) {
         const { description } = request.body;
         request.log.info({ roleId }, 'Updating role');
         // Check if role exists
-        const existingRole = await prisma_1.default.role.findUnique({
+        const existingRole = await prisma_1.prisma.role.findUnique({
             where: { id: roleId },
         });
         if (!existingRole) {
             throw new RoleNotFoundError('Role not found');
         }
         // Update role
-        const role = await prisma_1.default.role.update({
+        const role = await prisma_1.prisma.role.update({
             where: { id: roleId },
             data: {
                 description: description !== undefined ? description : undefined,
@@ -161,8 +205,7 @@ async function updateRoleHandler(request, reply) {
     catch (error) {
         if (error instanceof RoleNotFoundError) {
             return reply.status(404).send({
-                error: 'Not Found',
-                message: error.message,
+                error: error.message,
             });
         }
         request.log.error({ error }, 'Error updating role');
@@ -187,24 +230,22 @@ async function assignRoleHandler(request, reply) {
         const userId = parseInt(request.params.userId);
         request.log.info({ roleId, userId }, 'Assigning role to user');
         // Check if role exists
-        const role = await prisma_1.default.role.findUnique({
+        const role = await prisma_1.prisma.role.findUnique({
             where: { id: roleId },
         });
         if (!role) {
             return reply.status(404).send({
-                error: 'Not Found',
-                message: 'Role not found',
+                error: 'Role not found',
             });
         }
         // Check if user exists
-        const user = await prisma_1.default.user.findUnique({
+        const user = await prisma_1.prisma.user.findUnique({
             where: { id: userId },
             include: { roles: true },
         });
         if (!user) {
             return reply.status(404).send({
-                error: 'Not Found',
-                message: 'User not found',
+                error: 'User not found',
             });
         }
         // Check if user already has this role
@@ -215,7 +256,7 @@ async function assignRoleHandler(request, reply) {
             });
         }
         // Assign role to user
-        await prisma_1.default.user.update({
+        await prisma_1.prisma.user.update({
             where: { id: userId },
             data: {
                 roles: {
@@ -251,24 +292,22 @@ async function removeRoleHandler(request, reply) {
         const userId = parseInt(request.params.userId);
         request.log.info({ roleId, userId }, 'Removing role from user');
         // Check if role exists
-        const role = await prisma_1.default.role.findUnique({
+        const role = await prisma_1.prisma.role.findUnique({
             where: { id: roleId },
         });
         if (!role) {
             return reply.status(404).send({
-                error: 'Not Found',
-                message: 'Role not found',
+                error: 'Role not found',
             });
         }
         // Check if user exists
-        const user = await prisma_1.default.user.findUnique({
+        const user = await prisma_1.prisma.user.findUnique({
             where: { id: userId },
             include: { roles: true },
         });
         if (!user) {
             return reply.status(404).send({
-                error: 'Not Found',
-                message: 'User not found',
+                error: 'User not found',
             });
         }
         // Check if user has this role
@@ -279,7 +318,7 @@ async function removeRoleHandler(request, reply) {
             });
         }
         // Remove role from user
-        await prisma_1.default.user.update({
+        await prisma_1.prisma.user.update({
             where: { id: userId },
             data: {
                 roles: {

@@ -6,7 +6,7 @@ Modern Honey Network (MHN) is being rewritten from Python/Flask to TypeScript/No
 
 **Current Branch:** You should be on a branch based off `origin/main` which contains the TypeScript implementation.
 
-**Overall Progress:** ~33% complete (20 of 60+ legacy features implemented)
+**Overall Progress:** ~45% complete (27 of 60+ legacy features implemented)
 
 **Why TypeScript?**
 - Strong type safety prevents entire classes of bugs
@@ -35,9 +35,9 @@ Modern Honey Network (MHN) is being rewritten from Python/Flask to TypeScript/No
 
 **Lines of Code:** ~573 (including tests)
 
-**Database Models Implemented:** 5 of 8 (User, Role, ApiKey, PasswdReset, Sensor)
+**Database Models Implemented:** 6 of 8 (User, Role, ApiKey, PasswdReset, Sensor, Attack)
 
-**API Endpoints Implemented:** 24 of 40+ legacy endpoints
+**API Endpoints Implemented:** 31 of 40+ legacy endpoints
 
 ---
 
@@ -131,36 +131,80 @@ Modern Honey Network (MHN) is being rewritten from Python/Flask to TypeScript/No
 
 ---
 
+### ✅ Phase 4: Attack Data Collection (COMPLETE)
+
+**What's Implemented:**
+- ✅ MongoDB integration for attack data storage
+- ✅ Attack model in PostgreSQL for metadata and tracking
+- ✅ HPFeedsCredential model for sensor authentication
+- ✅ HPFeeds service for broker communication and data collection
+- ✅ HPFeeds credential management and channel routing
+- ✅ Attack data service layer (15 functions)
+- ✅ Attack data filtering and aggregation
+- ✅ Attack statistics and analytics APIs
+- ✅ Geographic heatmap data generation
+- ✅ Attacker IP leaderboard
+- ✅ Attack API endpoints (7 routes)
+- ✅ Comprehensive test coverage (80 tests for Phase 4)
+
+**New Services:**
+- [attack.service.ts](api/src/services/attack.service.ts) - Attack data management and queries
+- [hpfeeds.service.ts](api/src/services/hpfeeds.service.ts) - HPFeeds broker communication
+
+**New Routes:**
+- GET /api/attack - List attacks with filters (sensor, IP, protocol, time range)
+- GET /api/attack/stats - Attack statistics (total, by protocol, by sensor)
+- GET /api/attack/top-attackers - Attacker IP leaderboard with counts
+- GET /api/attack/geo - Geographic heatmap data (attacks by country)
+- GET /api/attack/sensor/:sensorId - Sensor-specific attack history
+- GET /api/attack/search - Search attacks by IP address
+- GET /api/attack/:id - Detailed attack data with full payload
+
+**Database Models:**
+- Attack model (PostgreSQL) - Attack metadata and references
+- HPFeedsCredential model (PostgreSQL) - Sensor credentials for broker
+- attack_events collection (MongoDB) - Detailed attack payloads and raw data
+
+**Lines of Code:** ~2,500+ (including tests)
+
+**Database Models Implemented:** 6 of 8 (User, Role, ApiKey, PasswdReset, Sensor, Attack)
+
+**API Endpoints Implemented:** 31 of 40+ legacy endpoints (7 new attack endpoints)
+
+**Test Coverage:** 307 tests passing, 4 skipped (311 total tests)
+
+---
+
 ### 📊 Feature Parity with Legacy System
 
 | Category | Legacy Features | Implemented | Progress |
 |----------|----------------|-------------|----------|
 | **Authentication** | 14 features | 14 | 100% |
 | **Sensor Management** | 10 features | 6 | 60% |
-| **Attack Data** | 11 features | 0 | 0% |
+| **Attack Data** | 11 features | 7 | 64% |
 | **Rules Management** | 12 features | 0 | 0% |
 | **Deploy Scripts** | 8 features | 0 | 0% |
 | **Integrations** | 5 features | 0 | 0% |
-| **TOTAL** | **60 features** | **20** | **33%** |
+| **TOTAL** | **60 features** | **27** | **45%** |
 
 ---
 
 ### 🚫 Critical Missing Features
 
-**Database Models (3 of 8 remaining):**
+**Database Models (2 of 8 remaining):**
 - ❌ Rule - Snort/Suricata IDS rules
 - ❌ Reference - Rule references (CVE, URLs)
 - ❌ RuleSource - Rule download sources
 - ❌ DeployScript - Deployment automation
 
 **Core MHN Functionality:**
-- ❌ HPFeeds broker integration (for sensor data collection)
-- ❌ Attack data collection and storage
-- ❌ MongoDB integration for attack data
+- ✅ ~~HPFeeds broker integration~~ (COMPLETE - Phase 4)
+- ✅ ~~Attack data collection and storage~~ (COMPLETE - Phase 4)
+- ✅ ~~MongoDB integration for attack data~~ (COMPLETE - Phase 4)
 - ❌ Deploy script system
 - ❌ Rules management and distribution
-- ❌ Geolocation services
-- ❌ Real-time attack feed
+- ❌ Geolocation services (partially implemented - country-level)
+- ❌ Real-time attack feed (WebSocket/SSE)
 
 **External Integrations:**
 - ❌ Splunk, ArcSight, ELK stack support
@@ -185,14 +229,15 @@ Modern Honey Network (MHN) is being rewritten from Python/Flask to TypeScript/No
 6. **No rate limiting** - API vulnerable to abuse
 
 **Testing Gaps:**
-- No authentication tests (not implemented)
-- No integration tests for sensors, attacks, rules
+- ✅ ~~No authentication tests~~ (COMPLETE - Phase 2)
+- ✅ ~~No integration tests for sensors, attacks~~ (COMPLETE - Phases 3 & 4)
+- No integration tests for rules (Phase 5 not started)
 - No end-to-end tests
 
 **Infrastructure:**
 - No Redis for caching/sessions
-- No MongoDB for attack data
-- No HPFeeds broker in docker-compose
+- ✅ ~~No MongoDB for attack data~~ (COMPLETE - Phase 4, docker-compose running)
+- ✅ ~~No HPFeeds broker~~ (Service implemented in Phase 4)
 - No monitoring/metrics
 
 ---
@@ -240,12 +285,15 @@ Modern Honey Network (MHN) is being rewritten from Python/Flask to TypeScript/No
 
 **Deployment:**
 - **Docker** - Containerization ⚠️ (Dockerfile missing)
-- **docker-compose** - Multi-container orchestration ⚠️ (incomplete)
+- **docker-compose** - Multi-container orchestration ✅ (PostgreSQL + MongoDB)
 - **GitHub Actions** - CI/CD pipeline ✅
+
+**Data Storage:**
+- **MongoDB** - Attack data storage ✅ (implemented in Phase 4)
+- **Mongoose** - MongoDB ODM ✅ (implemented in Phase 4)
 
 **Future Integrations (Not Started):**
 - **Redis** - Caching and session storage
-- **MongoDB** - Attack data storage
 - **Bull** - Job queues (replace Celery)
 - **Socket.io** - Real-time communication
 - **node-cron** - Scheduled tasks
@@ -1082,22 +1130,30 @@ PUT /api/sensor/:uuid          # Update sensor (requires api_key)
 DELETE /api/sensor/:uuid       # Delete sensor (requires api_key)
 POST /api/sensor/:uuid/connect # Sensor check-in/heartbeat (requires deploy_key)
 
+# Attack data (NEW in Phase 4)
+GET /api/attack                # List attacks with filters (sensor, IP, protocol, time)
+GET /api/attack/stats          # Attack statistics (total, by protocol, by sensor)
+GET /api/attack/top-attackers  # Attacker IP leaderboard
+GET /api/attack/geo            # Geographic heatmap data
+GET /api/attack/sensor/:sensorId # Sensor-specific attack history
+GET /api/attack/search         # Search attacks by IP
+GET /api/attack/:id            # Detailed attack data
+
 # Test endpoints
 GET /hello                     # Hello world
 GET /error                     # Test error handling
 ```
 
 **What DOESN'T Work Yet:**
-- Attack data collection and storage
 - Rules management and distribution
 - Deploy scripts system
-- HPFeeds broker integration
-- Real-time attack feed
+- Real-time attack feed (WebSocket/SSE)
 - External integrations (Splunk, ArcSight, ELK)
+- Email notifications
 
 ---
 
 **Last Updated:** 2025-11-21
-**Current Status:** Phase 3 complete (~33%), Phase 4 (Attack Data) next priority
-**Lines of Code:** ~5,500+ (including tests)
-**Feature Parity:** 20 of 60+ legacy features (33%)
+**Current Status:** Phase 4 complete (~45%), Phase 5 (Rules Management) next priority
+**Lines of Code:** ~8,000+ (including tests)
+**Feature Parity:** 27 of 60+ legacy features (45%)

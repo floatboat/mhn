@@ -7,6 +7,11 @@ exports.default = routes;
 const sensible_1 = __importDefault(require("@fastify/sensible"));
 const handlers_1 = require("../handlers/handlers");
 const user_route_1 = __importDefault(require("./api/user.route"));
+const auth_route_1 = __importDefault(require("./api/auth.route"));
+const role_route_1 = __importDefault(require("./api/role.route"));
+const apikey_route_1 = __importDefault(require("./api/apikey.route"));
+const sensor_route_1 = __importDefault(require("./api/sensor.route"));
+const attack_route_1 = __importDefault(require("./api/attack.route"));
 const errorHandler_1 = __importDefault(require("../plugins/errorHandler"));
 async function routes(fastify) {
     fastify.register(sensible_1.default);
@@ -35,5 +40,10 @@ async function routes(fastify) {
     await fastify.register(async (fastify) => {
         await fastify.register(errorHandler_1.default);
         await fastify.register(user_route_1.default);
+        await fastify.register(auth_route_1.default);
+        await fastify.register(role_route_1.default);
+        await fastify.register(apikey_route_1.default);
+        await fastify.register(sensor_route_1.default);
+        await fastify.register(attack_route_1.default);
     });
 }

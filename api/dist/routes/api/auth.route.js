@@ -28,7 +28,7 @@ async function authRoutes(fastify) {
     fastify.route({
         method: 'POST',
         url: '/auth/logout',
-        schema: auth_types_1.refreshSchema, // Uses same schema as refresh (requires refreshToken)
+        schema: auth_types_1.logoutSchema,
         handler: auth_handler_1.logoutHandler,
     });
     /**

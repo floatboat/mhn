@@ -5,7 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.requireDeployKey = exports.requireApiKey = exports.requireRole = exports.requireAuth = void 0;
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
-const prisma_1 = __importDefault(require("../lib/prisma"));
+const prisma_1 = require("../lib/prisma");
 /**
  * Authentication guard - Validates JWT token from Authorization header
  * Attaches user object to request if valid
@@ -58,7 +58,7 @@ const requireAuth = async (request, reply) => {
             });
         }
         // Fetch user from database with roles
-        const user = await prisma_1.default.user.findUnique({
+        const user = await prisma_1.prisma.user.findUnique({
             where: { id: decoded.userId },
             include: { roles: true },
         });
@@ -146,7 +146,7 @@ const requireApiKey = async (request, reply) => {
             });
         }
         // Find API key in database with user and roles
-        const apiKeyRecord = await prisma_1.default.apiKey.findUnique({
+        const apiKeyRecord = await prisma_1.prisma.apiKey.findUnique({
             where: { apiKey: apiKey.api_key },
             include: {
                 user: {

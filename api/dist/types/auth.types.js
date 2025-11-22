@@ -1,7 +1,7 @@
 "use strict";
 // src/types/auth.types.ts
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.userInfoSchema = exports.resetConfirmSchema = exports.resetRequestSchema = exports.refreshSchema = exports.loginSchema = void 0;
+exports.userInfoSchema = exports.resetConfirmSchema = exports.resetRequestSchema = exports.refreshSchema = exports.logoutSchema = exports.loginSchema = void 0;
 // JSON Schemas for request validation
 /**
  * Schema for login request
@@ -48,6 +48,26 @@ exports.loginSchema = {
 /**
  * Schema for refresh token request
  */
+exports.logoutSchema = {
+    body: {
+        type: 'object',
+        required: ['refreshToken'],
+        properties: {
+            refreshToken: {
+                type: 'string',
+                description: 'Refresh token to invalidate',
+            },
+        },
+    },
+    response: {
+        200: {
+            type: 'object',
+            properties: {
+                message: { type: 'string' },
+            },
+        },
+    },
+};
 exports.refreshSchema = {
     body: {
         type: 'object',

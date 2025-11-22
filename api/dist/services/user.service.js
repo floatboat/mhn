@@ -86,16 +86,6 @@ async function verifyPassword(plainPassword, hashedPassword) {
     return bcrypt_1.default.compare(plainPassword, hashedPassword);
 }
 /**
- * Excludes password field from user object
- * Helper function to ensure passwords are never returned
- * @param user - User object from database
- * @returns User object without password field
- */
-function excludePassword(user) {
-    const { password: _, ...userWithoutPassword } = user;
-    return userWithoutPassword;
-}
-/**
  * Gets a user by ID
  * @param id - User ID
  * @returns User object without password

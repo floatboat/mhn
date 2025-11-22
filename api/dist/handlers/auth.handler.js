@@ -32,9 +32,6 @@ var __importStar = (this && this.__importStar) || (function () {
         return result;
     };
 })();
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.loginHandler = loginHandler;
 exports.logoutHandler = logoutHandler;
@@ -43,7 +40,7 @@ exports.getMeHandler = getMeHandler;
 exports.resetRequestHandler = resetRequestHandler;
 exports.resetConfirmHandler = resetConfirmHandler;
 const auth_service_1 = require("../services/auth.service");
-const prisma_1 = __importDefault(require("../lib/prisma"));
+const prisma_1 = require("../lib/prisma");
 /**
  * Handles user login
  * POST /api/auth/login
@@ -73,15 +70,13 @@ async function loginHandler(request, reply) {
         if (error instanceof auth_service_1.InvalidCredentialsError) {
             request.log.warn({ email: request.body.email }, 'Invalid credentials');
             return reply.status(401).send({
-                error: 'Unauthorized',
-                message: error.message,
+                error: error.message,
             });
         }
         if (error instanceof auth_service_1.InactiveUserError) {
             request.log.warn({ email: request.body.email }, 'Inactive user account');
-            return reply.status(401).send({
-                error: 'Unauthorized',
-                message: error.message,
+            return reply.status(403).send({
+                error: error.message,
             });
         }
         request.log.error({ error }, 'Login error');
@@ -178,7 +173,7 @@ async function getMeHandler(request, reply) {
             });
         }
         // Fetch full user data from database
-        const user = await prisma_1.default.user.findUnique({
+        const user = await prisma_1.prisma.user.findUnique({
             where: { id: request.user.id },
             include: { roles: true },
         });
@@ -219,7 +214,7 @@ async function resetRequestHandler(request, reply) {
         const { email } = request.body;
         request.log.info({ email }, 'Password reset requested');
         // Find user by email
-        const user = await prisma_1.default.user.findUnique({
+        const user = await prisma_1.prisma.user.findUnique({
             where: { email },
         });
         // If user exists, create reset token
@@ -231,7 +226,7 @@ async function resetRequestHandler(request, reply) {
             const expiresAt = new Date();
             expiresAt.setHours(expiresAt.getHours() + 24);
             // Deactivate any existing reset tokens for this user
-            await prisma_1.default.passwdReset.updateMany({
+            await prisma_1.prisma.passwdReset.updateMany({
                 where: {
                     userId: user.id,
                     active: true,
@@ -241,7 +236,7 @@ async function resetRequestHandler(request, reply) {
                 },
             });
             // Create new reset token
-            await prisma_1.default.passwdReset.create({
+            await prisma_1.prisma.passwdReset.create({
                 data: {
                     hashStr: resetToken,
                     userId: user.id,
@@ -284,7 +279,7 @@ async function resetConfirmHandler(request, reply) {
         const { token, newPassword } = request.body;
         request.log.info('Password reset confirmation attempt');
         // Find active reset token
-        const resetRecord = await prisma_1.default.passwdReset.findFirst({
+        const resetRecord = await prisma_1.prisma.passwdReset.findFirst({
             where: {
                 hashStr: token,
                 active: true,
@@ -295,38 +290,36 @@ async function resetConfirmHandler(request, reply) {
         });
         if (!resetRecord) {
             return reply.status(400).send({
-                error: 'Bad Request',
-                message: 'Invalid or expired reset token',
+                error: 'Invalid or expired reset token',
             });
         }
         // Check if token has expired
         if (resetRecord.expiresAt < new Date()) {
             // Deactivate expired token
-            await prisma_1.default.passwdReset.update({
+            await prisma_1.prisma.passwdReset.update({
                 where: { id: resetRecord.id },
                 data: { active: false },
             });
             return reply.status(400).send({
-                error: 'Bad Request',
-                message: 'Reset token has expired',
+                error: 'Invalid or expired reset token',
             });
         }
         // Hash the new password
         const bcrypt = await Promise.resolve().then(() => __importStar(require('bcrypt')));
         const hashedPassword = await bcrypt.hash(newPassword, 10);
         // Update user's password
-        await prisma_1.default.user.update({
+        await prisma_1.prisma.user.update({
             where: { id: resetRecord.userId },
             data: { password: hashedPassword },
         });
         // Deactivate the reset token
-        await prisma_1.default.passwdReset.update({
+        await prisma_1.prisma.passwdReset.update({
             where: { id: resetRecord.id },
             data: { active: false },
         });
         request.log.info({ userId: resetRecord.userId }, 'Password reset successful');
         return reply.status(200).send({
-            message: 'Password has been reset successfully',
+            message: 'Password reset successfully',
         });
     }
     catch (error) {

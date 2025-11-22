@@ -7,7 +7,7 @@ exports.ApiKeyNotFoundError = void 0;
 exports.listApiKeysHandler = listApiKeysHandler;
 exports.createApiKeyHandler = createApiKeyHandler;
 exports.deleteApiKeyHandler = deleteApiKeyHandler;
-const prisma_1 = __importDefault(require("../lib/prisma"));
+const prisma_1 = require("../lib/prisma");
 const crypto_1 = __importDefault(require("crypto"));
 /**
  * Custom error for API key not found
@@ -38,7 +38,7 @@ function generateApiKey() {
  */
 async function listApiKeysHandler(request, reply) {
     try {
-        const apiKeys = await prisma_1.default.apiKey.findMany({
+        const apiKeys = await prisma_1.prisma.apiKey.findMany({
             include: {
                 user: {
                     select: {
@@ -97,7 +97,7 @@ async function createApiKeyHandler(request, reply) {
         // Keep generating until we get a unique key (very unlikely to collide)
         while (!isUnique) {
             apiKeyStr = generateApiKey();
-            const existing = await prisma_1.default.apiKey.findUnique({
+            const existing = await prisma_1.prisma.apiKey.findUnique({
                 where: { apiKey: apiKeyStr },
             });
             if (!existing) {
@@ -105,7 +105,7 @@ async function createApiKeyHandler(request, reply) {
             }
         }
         // Create API key
-        const apiKey = await prisma_1.default.apiKey.create({
+        const apiKey = await prisma_1.prisma.apiKey.create({
             data: {
                 apiKey: apiKeyStr,
                 userId,
@@ -149,7 +149,7 @@ async function deleteApiKeyHandler(request, reply) {
         const isAdmin = request.user.roles.includes('admin');
         request.log.info({ apiKeyId, userId }, 'Deleting API key');
         // Find the API key
-        const apiKey = await prisma_1.default.apiKey.findUnique({
+        const apiKey = await prisma_1.prisma.apiKey.findUnique({
             where: { id: apiKeyId },
         });
         if (!apiKey) {
@@ -158,12 +158,11 @@ async function deleteApiKeyHandler(request, reply) {
         // Check if user owns this API key or is admin
         if (apiKey.userId !== userId && !isAdmin) {
             return reply.status(403).send({
-                error: 'Forbidden',
-                message: 'You can only delete your own API keys',
+                error: 'Cannot delete API key that belongs to another user',
             });
         }
         // Delete API key
-        await prisma_1.default.apiKey.delete({
+        await prisma_1.prisma.apiKey.delete({
             where: { id: apiKeyId },
         });
         request.log.info({ apiKeyId }, 'API key deleted');
@@ -174,8 +173,7 @@ async function deleteApiKeyHandler(request, reply) {
     catch (error) {
         if (error instanceof ApiKeyNotFoundError) {
             return reply.status(404).send({
-                error: 'Not Found',
-                message: error.message,
+                error: error.message,
             });
         }
         request.log.error({ error }, 'Error deleting API key');

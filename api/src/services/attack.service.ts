@@ -9,7 +9,7 @@
  * - Data retention and cleanup
  */
 
-import { Db, ObjectId } from 'mongodb';
+import { ObjectId } from 'mongodb';
 import { prisma } from '../lib/prisma';
 import { getMongoDB } from '../lib/mongodb';
 import { Prisma } from '@prisma/client';
@@ -54,14 +54,14 @@ export interface AttackResponse {
   id: number;
   sourceIp: string;
   protocol: string;
-  port?: number;
+  port?: number | null;
   timestamp: Date;
   sensorId: number;
-  mongoId?: string;
-  country?: string;
-  city?: string;
-  latitude?: number;
-  longitude?: number;
+  mongoId?: string | null;
+  country?: string | null;
+  city?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
   createdAt: Date;
   updatedAt: Date;
 }

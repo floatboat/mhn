@@ -43,6 +43,6 @@ async function apikeyRoutes(fastify) {
         url: '/apikey/:id',
         schema: apikey_types_1.deleteApiKeySchema,
         preHandler: auth_decorators_1.requireAuth,
-        handler: apikey_handler_1.deleteApiKeyHandler,
+        handler: apikey_handler_1.deleteApiKeyHandler, // Type assertion needed for AuthenticatedRequest
     });
 }
