@@ -19,7 +19,26 @@ services:
       retries: 5
     restart: unless-stopped
     networks:
-      - api-network
+      - mhn-network
+
+  mongodb:
+    image: mongo:7.0
+    container_name: mhn-mongodb
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: mongodb_user
+      MONGO_INITDB_ROOT_PASSWORD: mongodb_password
+    ports:
+      - '27017:27017'
+    volumes:
+      - mongodb_data:/data/db
+    healthcheck:
+      test: ['CMD', 'mongosh', '--eval', "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - mhn-network
 
   api:
     build:
@@ -28,6 +47,7 @@ services:
     container_name: api
     environment:
       - DATABASE_URL=postgresql://api_user:randompassword@postgres:5432/agave
+      - MONGODB_URI=mongodb://mongodb_user:mongodb_password@mongodb:27017/mhn?authSource=admin
       - NODE_ENV=production
       - PORT=3000
       - FASTIFY_LOG_LEVEL=debug
@@ -37,16 +57,19 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      mongodb:
+        condition: service_healthy
     command: >
-      sh -c "npx prisma migrate deploy && 
+      sh -c "npx prisma migrate deploy &&
              node dist/app.js"
     restart: unless-stopped
     networks:
-      - api-network
+      - mhn-network
 
 networks:
-  api-network:
+  mhn-network:
     driver: bridge
 
 volumes:
   postgres_data:
+  mongodb_data:

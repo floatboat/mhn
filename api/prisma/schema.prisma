@@ -101,7 +101,51 @@ model Sensor {
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
+  // Relationships
+  attacks           Attack[]
+  hpfeedsCredential HPFeedsCredential?
+
   @@index([uuid])
   @@index([identifier])
   @@index([honeypot])
+}
+
+// HPFeeds credentials for sensor authentication
+// Each sensor gets a unique secret for HPFeeds broker authentication
+model HPFeedsCredential {
+  id        Int      @id @default(autoincrement())
+  sensor    Sensor   @relation(fields: [sensorId], references: [id], onDelete: Cascade)
+  sensorId  Int      @unique
+  uuid      String   @unique // Same as sensor UUID
+  secret    String // 40-char hex secret
+  channel   String // HPFeeds channel (e.g., "dionaea.capture")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([uuid])
+  @@index([channel])
+}
+
+// Attack metadata (stores summary info about attacks in PostgreSQL)
+// Detailed attack data is stored in MongoDB
+model Attack {
+  id        Int      @id @default(autoincrement())
+  sourceIp  String // Attacker IP address
+  protocol  String // TCP, UDP, HTTP, etc.
+  port      Int? // Target port (if applicable)
+  timestamp DateTime @default(now()) // When attack occurred
+  sensor    Sensor   @relation(fields: [sensorId], references: [id], onDelete: Cascade)
+  sensorId  Int
+  mongoId   String? // Reference to MongoDB ObjectId for detailed data
+  country   String? // Geolocation: country code
+  city      String? // Geolocation: city name
+  latitude  Float? // Geolocation: latitude
+  longitude Float? // Geolocation: longitude
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([sourceIp])
+  @@index([timestamp])
+  @@index([sensorId])
+  @@index([mongoId])
 }
