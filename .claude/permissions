@@ -10,7 +10,10 @@
         "format*",
         ":(){ :|:& };:",
         "chmod -R 777 /*",
-        "chown -R * /*"
+        "chown -R * /*",
+        "git push --force*",
+        "git reset --hard",
+        "git rebase -i"
       ]
     },
     "Edit": {
@@ -26,6 +29,36 @@
       "allow": ["*"]
     },
     "Grep": {
+      "allow": ["*"]
+    },
+    "Task": {
+      "allow": ["*"]
+    },
+    "AskUserQuestion": {
+      "allow": ["*"]
+    },
+    "NotebookEdit": {
+      "allow": ["*"]
+    },
+    "WebFetch": {
+      "allow": ["*"]
+    },
+    "WebSearch": {
+      "allow": ["*"]
+    },
+    "BashOutput": {
+      "allow": ["*"]
+    },
+    "KillShell": {
+      "allow": ["*"]
+    },
+    "ExitPlanMode": {
+      "allow": ["*"]
+    },
+    "SlashCommand": {
+      "allow": ["*"]
+    },
+    "Skill": {
       "allow": ["*"]
     }
   }
