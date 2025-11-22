@@ -12,6 +12,21 @@
         "chmod -R 777 /*",
         "chown -R * /*"
       ]
+    },
+    "Edit": {
+      "allow": ["*"]
+    },
+    "Write": {
+      "allow": ["*"]
+    },
+    "Read": {
+      "allow": ["*"]
+    },
+    "Glob": {
+      "allow": ["*"]
+    },
+    "Grep": {
+      "allow": ["*"]
     }
   }
 }
