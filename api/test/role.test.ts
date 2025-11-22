@@ -89,13 +89,15 @@ describe('Role API Routes', () => {
         confirmedAt: new Date(),
         createdAt: new Date(),
         updatedAt: new Date(),
-        roles: [{
-          id: 1,
-          name: 'admin',
-          description: 'Administrator',
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        }],
+        roles: [
+          {
+            id: 1,
+            name: 'admin',
+            description: 'Administrator',
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          },
+        ],
       } as never);
 
       prismaMock.role.findMany.mockResolvedValue(roles);
@@ -143,13 +145,15 @@ describe('Role API Routes', () => {
         confirmedAt: new Date(),
         createdAt: new Date(),
         updatedAt: new Date(),
-        roles: [{
-          id: 1,
-          name: 'admin',
-          description: 'Administrator',
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        }],
+        roles: [
+          {
+            id: 1,
+            name: 'admin',
+            description: 'Administrator',
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          },
+        ],
       } as never);
 
       prismaMock.role.findUnique.mockResolvedValue(null); // Role doesn't exist
@@ -197,13 +201,15 @@ describe('Role API Routes', () => {
         confirmedAt: new Date(),
         createdAt: new Date(),
         updatedAt: new Date(),
-        roles: [{
-          id: 2,
-          name: 'user',
-          description: 'Regular user',
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        }],
+        roles: [
+          {
+            id: 2,
+            name: 'user',
+            description: 'Regular user',
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          },
+        ],
       } as never);
 
       const response = await app.inject({
@@ -237,13 +243,15 @@ describe('Role API Routes', () => {
         confirmedAt: new Date(),
         createdAt: new Date(),
         updatedAt: new Date(),
-        roles: [{
-          id: 1,
-          name: 'admin',
-          description: 'Administrator',
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        }],
+        roles: [
+          {
+            id: 1,
+            name: 'admin',
+            description: 'Administrator',
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          },
+        ],
       } as never);
 
       prismaMock.role.findUnique.mockResolvedValue({
@@ -313,13 +321,15 @@ describe('Role API Routes', () => {
         confirmedAt: new Date(),
         createdAt: new Date(),
         updatedAt: new Date(),
-        roles: [{
-          id: 1,
-          name: 'admin',
-          description: 'Administrator',
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        }],
+        roles: [
+          {
+            id: 1,
+            name: 'admin',
+            description: 'Administrator',
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          },
+        ],
       } as never);
 
       // Second call: handler fetches target user to assign role
@@ -384,13 +394,15 @@ describe('Role API Routes', () => {
         confirmedAt: new Date(),
         createdAt: new Date(),
         updatedAt: new Date(),
-        roles: [{
-          id: 2,
-          name: 'user',
-          description: 'Regular user',
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        }],
+        roles: [
+          {
+            id: 2,
+            name: 'user',
+            description: 'Regular user',
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          },
+        ],
       } as never);
 
       const response = await app.inject({
@@ -420,13 +432,15 @@ describe('Role API Routes', () => {
         confirmedAt: new Date(),
         createdAt: new Date(),
         updatedAt: new Date(),
-        roles: [{
-          id: 1,
-          name: 'admin',
-          description: 'Administrator',
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        }],
+        roles: [
+          {
+            id: 1,
+            name: 'admin',
+            description: 'Administrator',
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          },
+        ],
       } as never);
 
       prismaMock.role.findUnique.mockResolvedValue(null);
@@ -462,13 +476,15 @@ describe('Role API Routes', () => {
         confirmedAt: new Date(),
         createdAt: new Date(),
         updatedAt: new Date(),
-        roles: [{
-          id: 1,
-          name: 'admin',
-          description: 'Administrator',
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        }],
+        roles: [
+          {
+            id: 1,
+            name: 'admin',
+            description: 'Administrator',
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          },
+        ],
       } as never);
 
       // Second call: handler tries to fetch target user (doesn't exist)
@@ -516,13 +532,15 @@ describe('Role API Routes', () => {
         confirmedAt: new Date(),
         createdAt: new Date(),
         updatedAt: new Date(),
-        roles: [{
-          id: 1,
-          name: 'admin',
-          description: 'Administrator',
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        }],
+        roles: [
+          {
+            id: 1,
+            name: 'admin',
+            description: 'Administrator',
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          },
+        ],
       } as never);
 
       prismaMock.role.findUnique.mockResolvedValue({
@@ -543,13 +561,15 @@ describe('Role API Routes', () => {
         confirmedAt: new Date(),
         createdAt: new Date(),
         updatedAt: new Date(),
-        roles: [{
-          id: 2,
-          name: 'user',
-          description: 'Regular user',
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        }],
+        roles: [
+          {
+            id: 2,
+            name: 'user',
+            description: 'Regular user',
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          },
+        ],
       } as never);
 
       prismaMock.user.update.mockResolvedValue({
@@ -594,13 +614,15 @@ describe('Role API Routes', () => {
         confirmedAt: new Date(),
         createdAt: new Date(),
         updatedAt: new Date(),
-        roles: [{
-          id: 2,
-          name: 'user',
-          description: 'Regular user',
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        }],
+        roles: [
+          {
+            id: 2,
+            name: 'user',
+            description: 'Regular user',
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          },
+        ],
       } as never);
 
       const response = await app.inject({
@@ -633,13 +655,15 @@ describe('Role API Routes', () => {
         confirmedAt: new Date(),
         createdAt: new Date(),
         updatedAt: new Date(),
-        roles: [{
-          id: 1,
-          name: 'admin',
-          description: 'Administrator',
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        }],
+        roles: [
+          {
+            id: 1,
+            name: 'admin',
+            description: 'Administrator',
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          },
+        ],
       } as never);
 
       prismaMock.role.findUnique.mockResolvedValue({
@@ -687,13 +711,15 @@ describe('Role API Routes', () => {
         confirmedAt: new Date(),
         createdAt: new Date(),
         updatedAt: new Date(),
-        roles: [{
-          id: 1,
-          name: 'admin',
-          description: 'Administrator',
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        }],
+        roles: [
+          {
+            id: 1,
+            name: 'admin',
+            description: 'Administrator',
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          },
+        ],
       } as never);
 
       prismaMock.role.findUnique.mockResolvedValue(null);

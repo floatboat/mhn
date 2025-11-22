@@ -52,21 +52,23 @@ export async function listApiKeysHandler(
       },
     });
 
-    const apiKeysList = apiKeys.map((key: {
-      id: number;
-      apiKey: string;
-      createdAt: Date;
-      user: { id: number; name: string; email: string };
-    }) => ({
-      id: key.id,
-      apiKey: key.apiKey,
-      createdAt: key.createdAt.toISOString(),
-      user: {
-        id: key.user.id,
-        name: key.user.name,
-        email: key.user.email,
-      },
-    }));
+    const apiKeysList = apiKeys.map(
+      (key: {
+        id: number;
+        apiKey: string;
+        createdAt: Date;
+        user: { id: number; name: string; email: string };
+      }) => ({
+        id: key.id,
+        apiKey: key.apiKey,
+        createdAt: key.createdAt.toISOString(),
+        user: {
+          id: key.user.id,
+          name: key.user.name,
+          email: key.user.email,
+        },
+      }),
+    );
 
     return reply.status(200).send(apiKeysList);
   } catch (error) {

@@ -49,7 +49,9 @@ export function getMongoDB(): Db {
 async function initializeCollections(database: Db): Promise<void> {
   // Create attack_events collection if it doesn't exist
   const collections = await database.listCollections().toArray();
-  const hasAttackEvents = collections.some((col) => col.name === 'attack_events');
+  const hasAttackEvents = collections.some(
+    (col) => col.name === 'attack_events',
+  );
 
   if (!hasAttackEvents) {
     await database.createCollection('attack_events');

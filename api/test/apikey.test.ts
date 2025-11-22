@@ -68,13 +68,15 @@ describe('API Key Routes', () => {
         confirmedAt: new Date(),
         createdAt: new Date(),
         updatedAt: new Date(),
-        roles: [{
-          id: 1,
-          name: 'admin',
-          description: 'Administrator',
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        }],
+        roles: [
+          {
+            id: 1,
+            name: 'admin',
+            description: 'Administrator',
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          },
+        ],
       } as never);
 
       const apiKeys = [
@@ -146,13 +148,15 @@ describe('API Key Routes', () => {
         confirmedAt: new Date(),
         createdAt: new Date(),
         updatedAt: new Date(),
-        roles: [{
-          id: 1,
-          name: 'admin',
-          description: 'Administrator',
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        }],
+        roles: [
+          {
+            id: 1,
+            name: 'admin',
+            description: 'Administrator',
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          },
+        ],
       } as never);
 
       prismaMock.apiKey.findMany.mockResolvedValue([]);
@@ -371,13 +375,15 @@ describe('API Key Routes', () => {
         confirmedAt: new Date(),
         createdAt: new Date(),
         updatedAt: new Date(),
-        roles: [{
-          id: 1,
-          name: 'admin',
-          description: 'Administrator',
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        }],
+        roles: [
+          {
+            id: 1,
+            name: 'admin',
+            description: 'Administrator',
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          },
+        ],
       } as never);
 
       const otherUserApiKey = {

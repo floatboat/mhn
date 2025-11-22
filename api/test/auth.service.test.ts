@@ -96,9 +96,9 @@ describe('Auth Service', () => {
     it('should throw InvalidCredentialsError for non-existent user', async () => {
       prismaMock.user.findUnique.mockResolvedValue(null);
 
-      await expect(login('nonexistent@example.com', 'password123')).rejects.toThrow(
-        InvalidCredentialsError,
-      );
+      await expect(
+        login('nonexistent@example.com', 'password123'),
+      ).rejects.toThrow(InvalidCredentialsError);
     });
 
     it('should throw InvalidCredentialsError for wrong password', async () => {
@@ -134,7 +134,10 @@ describe('Auth Service', () => {
 
       // Verify logout was successful
       expect(result).toBe(true);
-      expect(jwtMock.verify).toHaveBeenCalledWith('valid_refresh_token', expect.any(String));
+      expect(jwtMock.verify).toHaveBeenCalledWith(
+        'valid_refresh_token',
+        expect.any(String),
+      );
     });
   });
 

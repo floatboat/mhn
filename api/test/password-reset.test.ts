@@ -95,7 +95,7 @@ describe('Password Reset Service', () => {
       prismaMock.user.findUnique.mockResolvedValue(null);
 
       await expect(requestReset('nonexistent@example.com')).rejects.toThrow(
-        'User with email \'nonexistent@example.com\' not found',
+        "User with email 'nonexistent@example.com' not found",
       );
       expect(prismaMock.passwdReset.create).not.toHaveBeenCalled();
     });
@@ -106,7 +106,9 @@ describe('Password Reset Service', () => {
         toString: () => 'a'.repeat(40),
       });
 
-      prismaMock.passwdReset.updateMany.mockResolvedValue({ count: 2 } as never);
+      prismaMock.passwdReset.updateMany.mockResolvedValue({
+        count: 2,
+      } as never);
       prismaMock.passwdReset.create.mockResolvedValue({
         id: 1,
         hashStr: 'a'.repeat(40),
@@ -162,7 +164,9 @@ describe('Password Reset Service', () => {
     it('should return reset token for valid token', async () => {
       prismaMock.passwdReset.findUnique.mockResolvedValue(validToken);
 
-      const result = await validateResetToken('valid_token_40_chars_xxxxxxxxxxxxxx');
+      const result = await validateResetToken(
+        'valid_token_40_chars_xxxxxxxxxxxxxx',
+      );
 
       expect(result).toMatchObject({
         id: 1,
@@ -175,18 +179,18 @@ describe('Password Reset Service', () => {
     it('should throw InvalidResetTokenError for non-existent token', async () => {
       prismaMock.passwdReset.findUnique.mockResolvedValue(null);
 
-      await expect(
-        validateResetToken('invalid_token'),
-      ).rejects.toThrow(InvalidResetTokenError);
+      await expect(validateResetToken('invalid_token')).rejects.toThrow(
+        InvalidResetTokenError,
+      );
     });
 
     it('should throw InvalidResetTokenError for inactive token', async () => {
       const inactiveToken = { ...validToken, active: false };
       prismaMock.passwdReset.findUnique.mockResolvedValue(inactiveToken);
 
-      await expect(
-        validateResetToken('inactive_token'),
-      ).rejects.toThrow(InvalidResetTokenError);
+      await expect(validateResetToken('inactive_token')).rejects.toThrow(
+        InvalidResetTokenError,
+      );
     });
 
     it('should throw InvalidResetTokenError for expired token', async () => {
@@ -200,9 +204,9 @@ describe('Password Reset Service', () => {
         active: false,
       });
 
-      await expect(
-        validateResetToken('expired_token'),
-      ).rejects.toThrow('Reset token has expired');
+      await expect(validateResetToken('expired_token')).rejects.toThrow(
+        'Reset token has expired',
+      );
     });
   });
 
@@ -239,7 +243,10 @@ describe('Password Reset Service', () => {
         active: false,
       });
 
-      const result = await resetPassword('valid_token_40_chars_xxxxxxxxxxxxxx', 'newpassword123');
+      const result = await resetPassword(
+        'valid_token_40_chars_xxxxxxxxxxxxxx',
+        'newpassword123',
+      );
 
       expect(result).toBe(true);
       expect(bcryptMock.hash).toHaveBeenCalledWith('newpassword123', 10);
@@ -293,7 +300,10 @@ describe('Password Reset Service', () => {
         active: false,
       });
 
-      await resetPassword('valid_token_40_chars_xxxxxxxxxxxxxx', 'newpassword123');
+      await resetPassword(
+        'valid_token_40_chars_xxxxxxxxxxxxxx',
+        'newpassword123',
+      );
 
       expect(prismaMock.passwdReset.update).toHaveBeenCalledWith({
         where: { id: 1 },
@@ -317,7 +327,10 @@ describe('Password Reset Service', () => {
       });
 
       // First use should succeed
-      await resetPassword('valid_token_40_chars_xxxxxxxxxxxxxx', 'newpassword123');
+      await resetPassword(
+        'valid_token_40_chars_xxxxxxxxxxxxxx',
+        'newpassword123',
+      );
 
       // Second use should fail
       await expect(
@@ -375,7 +388,10 @@ describe('Password Reset Service', () => {
         where: {
           OR: [
             { expiresAt: { lt: new Date() } },
-            { active: false, createdAt: { lt: new Date(Date.now() - 86400000 * 7) } }, // 7 days old inactive tokens
+            {
+              active: false,
+              createdAt: { lt: new Date(Date.now() - 86400000 * 7) },
+            }, // 7 days old inactive tokens
           ],
         },
       });

@@ -61,7 +61,10 @@ export async function registerSensorHandler(
     const { name, hostname, honeypot } = request.body;
     const clientIp = getClientIp(request);
 
-    request.log.info({ name, hostname, honeypot, ip: clientIp }, 'Registering sensor');
+    request.log.info(
+      { name, hostname, honeypot, ip: clientIp },
+      'Registering sensor',
+    );
 
     const data: RegisterSensorData = {
       name,

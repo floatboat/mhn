@@ -149,3 +149,48 @@ model Attack {
   @@index([sensorId])
   @@index([mongoId])
 }
+
+// Snort/Suricata IDS Rules
+model Rule {
+  id         Int      @id @default(autoincrement())
+  message    String   // Human-readable rule description
+  classtype  String   // Classification (e.g., "attempted-admin", "attempted-user")
+  sid        Int      // Snort Rule ID (unique identifier)
+  rev        Int      // Revision number (for versioning same rule)
+  ruleFormat String   @db.Text // The actual rule text with placeholders
+  isActive   Boolean  @default(true)
+  notes      String?  @db.Text // Optional notes about the rule
+  source     RuleSource? @relation(fields: [sourceId], references: [id])
+  sourceId   Int?
+  references Reference[]
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([sid, rev])  // Only one version of each rule active
+  @@index([sid])
+  @@index([isActive])
+  @@index([classtype])
+}
+
+// Rule references (CVE, URLs, etc.)
+model Reference {
+  id     Int    @id @default(autoincrement())
+  text   String // CVE number, URL, or other reference
+  rule   Rule   @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+  ruleId Int
+
+  @@index([ruleId])
+}
+
+// Rule sources (where rules are downloaded from)
+model RuleSource {
+  id    Int     @id @default(autoincrement())
+  name  String  @unique // e.g., "Snort Community Rules", "Emerging Threats"
+  uri   String  // URL to download rules from
+  note  String?
+  rules Rule[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([name])
+}

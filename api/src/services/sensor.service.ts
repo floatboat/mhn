@@ -83,7 +83,9 @@ export async function registerSensor(
   });
 
   if (existingSensor) {
-    throw new SensorExistsError(`Sensor with name '${data.name}' already exists`);
+    throw new SensorExistsError(
+      `Sensor with name '${data.name}' already exists`,
+    );
   }
 
   // Generate UUID v1 for sensor
@@ -110,7 +112,9 @@ export async function registerSensor(
  * @param uuid - Sensor UUID (v1)
  * @returns Sensor object or null if not found
  */
-export async function getSensorByUuid(uuid: string): Promise<SensorResponse | null> {
+export async function getSensorByUuid(
+  uuid: string,
+): Promise<SensorResponse | null> {
   const sensor = await prisma.sensor.findUnique({
     where: { uuid },
   });
@@ -186,7 +190,9 @@ export async function updateSensor(
     });
 
     if (conflictingSensor) {
-      throw new SensorExistsError(`Sensor with name '${data.name}' already exists`);
+      throw new SensorExistsError(
+        `Sensor with name '${data.name}' already exists`,
+      );
     }
   }
 

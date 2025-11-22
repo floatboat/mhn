@@ -182,7 +182,9 @@ export async function getUserActiveResetTokens(
  * @param userId - User ID
  * @returns Number of tokens revoked
  */
-export async function revokeAllUserResetTokens(userId: number): Promise<number> {
+export async function revokeAllUserResetTokens(
+  userId: number,
+): Promise<number> {
   const result = await prisma.passwdReset.updateMany({
     where: {
       userId,
@@ -223,7 +225,9 @@ export async function cleanupExpiredTokens(): Promise<number> {
  * @param daysOld - Delete tokens older than this many days (default: 30)
  * @returns Number of tokens deleted
  */
-export async function deleteOldResetTokens(daysOld: number = 30): Promise<number> {
+export async function deleteOldResetTokens(
+  daysOld: number = 30,
+): Promise<number> {
   const cutoffDate = new Date();
   cutoffDate.setDate(cutoffDate.getDate() - daysOld);
 
@@ -244,7 +248,9 @@ export async function deleteOldResetTokens(daysOld: number = 30): Promise<number
  * @param userId - User ID
  * @returns True if user has at least one active, non-expired token
  */
-export async function userHasActiveResetToken(userId: number): Promise<boolean> {
+export async function userHasActiveResetToken(
+  userId: number,
+): Promise<boolean> {
   const count = await prisma.passwdReset.count({
     where: {
       userId,

@@ -93,7 +93,9 @@ describe('Sensor Service', () => {
       const existingSensor = { ...mockCreatedSensor, id: 2 };
       prismaMock.sensor.findFirst.mockResolvedValue(existingSensor);
 
-      await expect(registerSensor(sensorData)).rejects.toThrow(SensorExistsError);
+      await expect(registerSensor(sensorData)).rejects.toThrow(
+        SensorExistsError,
+      );
       await expect(registerSensor(sensorData)).rejects.toThrow(
         `Sensor with name '${sensorData.name}' already exists`,
       );
@@ -297,9 +299,9 @@ describe('Sensor Service', () => {
       prismaMock.sensor.findUnique.mockResolvedValue(existingSensor);
       prismaMock.sensor.findFirst.mockResolvedValue(conflictingSensor);
 
-      await expect(updateSensor(mockUuid, { name: 'new-name' })).rejects.toThrow(
-        SensorExistsError,
-      );
+      await expect(
+        updateSensor(mockUuid, { name: 'new-name' }),
+      ).rejects.toThrow(SensorExistsError);
     });
 
     it('should allow updating to same name (no conflict)', async () => {

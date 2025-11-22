@@ -259,9 +259,7 @@ export async function recordAttackEvent(
   });
 
   if (!sensor) {
-    throw new SensorNotFoundError(
-      `Sensor with UUID ${sensorUuid} not found`,
-    );
+    throw new SensorNotFoundError(`Sensor with UUID ${sensorUuid} not found`);
   }
 
   try {
@@ -564,10 +562,7 @@ export async function getTopAttackers(
 
     // Get geo data from first attack with geo info
     const geoAttack = attacks.find(
-      (a) =>
-        a.country !== null &&
-        a.latitude !== null &&
-        a.longitude !== null,
+      (a) => a.country !== null && a.latitude !== null && a.longitude !== null,
     );
 
     topAttackers.push({

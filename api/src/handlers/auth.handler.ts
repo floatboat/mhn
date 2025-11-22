@@ -350,7 +350,10 @@ export async function resetConfirmHandler(
       data: { active: false },
     });
 
-    request.log.info({ userId: resetRecord.userId }, 'Password reset successful');
+    request.log.info(
+      { userId: resetRecord.userId },
+      'Password reset successful',
+    );
 
     return reply.status(200).send({
       message: 'Password reset successfully',

@@ -78,7 +78,8 @@ export const config: Config = {
 
   // Authentication
   deployKey: requireEnv('DEPLOY_KEY'),
-  allowPublicRegistration: getEnv('ALLOW_PUBLIC_REGISTRATION', 'false') === 'true',
+  allowPublicRegistration:
+    getEnv('ALLOW_PUBLIC_REGISTRATION', 'false') === 'true',
 
   // Logging
   logLevel: getEnv('LOG_LEVEL', 'info'),

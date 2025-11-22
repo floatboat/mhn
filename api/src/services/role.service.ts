@@ -164,9 +164,7 @@ export async function assignRoleToUser(
   // Check if user already has this role
   const hasRole = user.roles.some((r) => r.id === roleId);
   if (hasRole) {
-    throw new UserHasRoleError(
-      `User already has role '${role.name}'`,
-    );
+    throw new UserHasRoleError(`User already has role '${role.name}'`);
   }
 
   // Assign role to user
@@ -230,9 +228,7 @@ export async function removeRoleFromUser(
   // Check if user has this role
   const hasRole = user.roles.some((r) => r.id === roleId);
   if (!hasRole) {
-    throw new UserLacksRoleError(
-      `User does not have role '${role.name}'`,
-    );
+    throw new UserLacksRoleError(`User does not have role '${role.name}'`);
   }
 
   // Remove role from user

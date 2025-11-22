@@ -66,7 +66,15 @@ describe('Auth API Routes', () => {
     it('should return tokens for valid credentials', async () => {
       prismaMock.user.findUnique.mockResolvedValue({
         ...validUser,
-        roles: [{ id: 1, name: 'user', description: 'Regular user', createdAt: new Date(), updatedAt: new Date() }],
+        roles: [
+          {
+            id: 1,
+            name: 'user',
+            description: 'Regular user',
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          },
+        ],
       } as never);
       bcryptMock.compare.mockResolvedValue(true as never);
       jwtMock.sign.mockReturnValueOnce('access_token_mock' as never);
@@ -312,7 +320,15 @@ describe('Auth API Routes', () => {
       prismaMock.user.findUnique.mockResolvedValue({
         ...validUser,
         password: 'hashed',
-        roles: [{ id: 1, name: 'user', description: null, createdAt: new Date(), updatedAt: new Date() }],
+        roles: [
+          {
+            id: 1,
+            name: 'user',
+            description: null,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          },
+        ],
       } as never);
 
       const response = await app.inject({

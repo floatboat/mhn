@@ -164,7 +164,9 @@ export async function deleteApiKey(
  * @param userId - User ID to get API keys for
  * @returns Array of API key objects
  */
-export async function getUserApiKeys(userId: number): Promise<ApiKeyResponse[]> {
+export async function getUserApiKeys(
+  userId: number,
+): Promise<ApiKeyResponse[]> {
   const apiKeys = await prisma.apiKey.findMany({
     where: { userId },
     select: {

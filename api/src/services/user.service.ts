@@ -104,7 +104,6 @@ export async function verifyPassword(
   return bcrypt.compare(plainPassword, hashedPassword);
 }
 
-
 /**
  * Gets a user by ID
  * @param id - User ID
@@ -321,9 +320,7 @@ export async function confirmUserEmail(id: number): Promise<UserResponse> {
 export async function getAllUsers(
   includeInactive: boolean = true,
 ): Promise<UserResponse[]> {
-  const where: Prisma.UserWhereInput = includeInactive
-    ? {}
-    : { active: true };
+  const where: Prisma.UserWhereInput = includeInactive ? {} : { active: true };
 
   return prisma.user.findMany({
     where,

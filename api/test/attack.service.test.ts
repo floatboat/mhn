@@ -78,9 +78,9 @@ describe('Attack Service', () => {
       });
 
       it('should accept valid IPv6 addresses', () => {
-        expect(validateSourceIp('2001:0db8:85a3:0000:0000:8a2e:0370:7334')).toBe(
-          true,
-        );
+        expect(
+          validateSourceIp('2001:0db8:85a3:0000:0000:8a2e:0370:7334'),
+        ).toBe(true);
         expect(validateSourceIp('::1')).toBe(true);
         // Note: '::' alone may not pass the simplified IPv6 regex
       });
@@ -230,65 +230,31 @@ describe('Attack Service', () => {
 
     it('should throw AttackValidationError for invalid source IP', async () => {
       await expect(
-        recordAttackEvent(
-          mockSensor.uuid,
-          'invalid-ip',
-          'TCP',
-          {},
-          80,
-        ),
+        recordAttackEvent(mockSensor.uuid, 'invalid-ip', 'TCP', {}, 80),
       ).rejects.toThrow(AttackValidationError);
 
       await expect(
-        recordAttackEvent(
-          mockSensor.uuid,
-          'invalid-ip',
-          'TCP',
-          {},
-          80,
-        ),
+        recordAttackEvent(mockSensor.uuid, 'invalid-ip', 'TCP', {}, 80),
       ).rejects.toThrow('Invalid source IP address');
     });
 
     it('should throw AttackValidationError for invalid protocol', async () => {
       await expect(
-        recordAttackEvent(
-          mockSensor.uuid,
-          '10.0.0.1',
-          'INVALID_PROTOCOL',
-          {},
-        ),
+        recordAttackEvent(mockSensor.uuid, '10.0.0.1', 'INVALID_PROTOCOL', {}),
       ).rejects.toThrow(AttackValidationError);
 
       await expect(
-        recordAttackEvent(
-          mockSensor.uuid,
-          '10.0.0.1',
-          'INVALID_PROTOCOL',
-          {},
-        ),
+        recordAttackEvent(mockSensor.uuid, '10.0.0.1', 'INVALID_PROTOCOL', {}),
       ).rejects.toThrow('Invalid protocol');
     });
 
     it('should throw AttackValidationError for invalid port', async () => {
       await expect(
-        recordAttackEvent(
-          mockSensor.uuid,
-          '10.0.0.1',
-          'TCP',
-          {},
-          70000,
-        ),
+        recordAttackEvent(mockSensor.uuid, '10.0.0.1', 'TCP', {}, 70000),
       ).rejects.toThrow(AttackValidationError);
 
       await expect(
-        recordAttackEvent(
-          mockSensor.uuid,
-          '10.0.0.1',
-          'TCP',
-          {},
-          0,
-        ),
+        recordAttackEvent(mockSensor.uuid, '10.0.0.1', 'TCP', {}, 0),
       ).rejects.toThrow('Invalid port number');
     });
 
@@ -326,21 +292,11 @@ describe('Attack Service', () => {
       prismaMock.sensor.findUnique.mockResolvedValue(null);
 
       await expect(
-        recordAttackEvent(
-          'non-existent-uuid',
-          '10.0.0.1',
-          'TCP',
-          {},
-        ),
+        recordAttackEvent('non-existent-uuid', '10.0.0.1', 'TCP', {}),
       ).rejects.toThrow(SensorNotFoundError);
 
       await expect(
-        recordAttackEvent(
-          'non-existent-uuid',
-          '10.0.0.1',
-          'TCP',
-          {},
-        ),
+        recordAttackEvent('non-existent-uuid', '10.0.0.1', 'TCP', {}),
       ).rejects.toThrow('Sensor with UUID non-existent-uuid not found');
     });
 
@@ -390,21 +346,11 @@ describe('Attack Service', () => {
       );
 
       await expect(
-        recordAttackEvent(
-          mockSensor.uuid,
-          '10.0.0.1',
-          'TCP',
-          {},
-        ),
+        recordAttackEvent(mockSensor.uuid, '10.0.0.1', 'TCP', {}),
       ).rejects.toThrow(AttackStorageError);
 
       await expect(
-        recordAttackEvent(
-          mockSensor.uuid,
-          '10.0.0.1',
-          'TCP',
-          {},
-        ),
+        recordAttackEvent(mockSensor.uuid, '10.0.0.1', 'TCP', {}),
       ).rejects.toThrow('Failed to store attack event');
     });
 
@@ -1009,17 +955,13 @@ describe('Attack Service', () => {
           { sourceIp: '10.0.0.1' },
           { sourceIp: '10.0.0.2' },
         ] as any)
-        .mockResolvedValueOnce([
-          { latitude: 45.5, longitude: -122.6 },
-        ] as any)
+        .mockResolvedValueOnce([{ latitude: 45.5, longitude: -122.6 }] as any)
         .mockResolvedValueOnce([
           { sourceIp: '20.0.0.1' },
           { sourceIp: '20.0.0.2' },
           { sourceIp: '20.0.0.3' },
         ] as any)
-        .mockResolvedValueOnce([
-          { latitude: 39.9, longitude: 116.4 },
-        ] as any);
+        .mockResolvedValueOnce([{ latitude: 39.9, longitude: 116.4 }] as any);
 
       const result = await getGeoStatistics();
 
@@ -1041,9 +983,7 @@ describe('Attack Service', () => {
           { sourceIp: '10.0.0.1' },
           { sourceIp: '10.0.0.2' },
         ] as any)
-        .mockResolvedValueOnce([
-          { latitude: 45.5, longitude: -122.6 },
-        ] as any);
+        .mockResolvedValueOnce([{ latitude: 45.5, longitude: -122.6 }] as any);
 
       const result = await getGeoStatistics();
 

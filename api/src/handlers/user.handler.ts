@@ -115,11 +115,13 @@ export async function getUserHandler(
       createdAt: user.createdAt.toISOString(),
       updatedAt: user.updatedAt.toISOString(),
       roles: user.roles.map((role: { name: string }) => role.name),
-      apiKeys: user.apiKeys.map((key: { id: number; apiKey: string; createdAt: Date }) => ({
-        id: key.id,
-        apiKey: key.apiKey,
-        createdAt: key.createdAt.toISOString(),
-      })),
+      apiKeys: user.apiKeys.map(
+        (key: { id: number; apiKey: string; createdAt: Date }) => ({
+          id: key.id,
+          apiKey: key.apiKey,
+          createdAt: key.createdAt.toISOString(),
+        }),
+      ),
     });
   } catch (error) {
     request.log.error({ error }, 'Error fetching user');

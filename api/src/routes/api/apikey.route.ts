@@ -53,6 +53,6 @@ export default async function apikeyRoutes(fastify: FastifyInstance) {
     url: '/apikey/:id',
     schema: deleteApiKeySchema,
     preHandler: requireAuth,
-    handler: deleteApiKeyHandler as any,  // Type assertion needed for AuthenticatedRequest
+    handler: deleteApiKeyHandler as any, // Type assertion needed for AuthenticatedRequest
   });
 }

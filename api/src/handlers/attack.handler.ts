@@ -32,15 +32,8 @@ export async function getAttacksHandler(
   reply: FastifyReply,
 ): Promise<void> {
   try {
-    const {
-      startDate,
-      endDate,
-      sensorId,
-      sourceIp,
-      protocol,
-      limit,
-      offset,
-    } = request.query;
+    const { startDate, endDate, sensorId, sourceIp, protocol, limit, offset } =
+      request.query;
 
     // Validate required date parameters
     if (!startDate || !endDate) {
@@ -58,7 +51,8 @@ export async function getAttacksHandler(
     if (isNaN(start.getTime()) || isNaN(end.getTime())) {
       return reply.status(400).send({
         error: 'Bad Request',
-        message: 'Invalid date format. Use ISO 8601 format (YYYY-MM-DDTHH:mm:ss.sssZ)',
+        message:
+          'Invalid date format. Use ISO 8601 format (YYYY-MM-DDTHH:mm:ss.sssZ)',
       });
     }
 
@@ -114,10 +108,7 @@ export async function getAttacksHandler(
       filters.offset = parsedOffset;
     }
 
-    request.log.info(
-      { start, end, filters },
-      'Fetching attacks by date range',
-    );
+    request.log.info({ start, end, filters }, 'Fetching attacks by date range');
 
     const result = await attackService.getAttacksByDateRange(
       start,
@@ -290,7 +281,10 @@ export async function getTopAttackersHandler(
       }
     }
 
-    request.log.info({ limit: parsedLimit, start, end }, 'Fetching top attackers');
+    request.log.info(
+      { limit: parsedLimit, start, end },
+      'Fetching top attackers',
+    );
 
     const topAttackers = await attackService.getTopAttackers(
       parsedLimit,

@@ -239,7 +239,9 @@ describe('Attack API Routes', () => {
       expect(response.statusCode).toBe(400);
       expect(response.json()).toMatchObject({
         error: 'Bad Request',
-        message: expect.stringContaining('limit must be a positive integer between 1 and 1000'),
+        message: expect.stringContaining(
+          'limit must be a positive integer between 1 and 1000',
+        ),
       });
     });
   });
@@ -314,10 +316,16 @@ describe('Attack API Routes', () => {
 
       // Mock findMany to return attacks with sensor relation
       prismaMock.attack.findMany.mockResolvedValueOnce([
-        { ...createMockAttack({ sourceIp: '192.168.1.100', protocol: 'TCP' }), sensor: mockSensor } as any,
+        {
+          ...createMockAttack({ sourceIp: '192.168.1.100', protocol: 'TCP' }),
+          sensor: mockSensor,
+        } as any,
       ]);
       prismaMock.attack.findMany.mockResolvedValueOnce([
-        { ...createMockAttack({ sourceIp: '10.0.0.5', protocol: 'UDP' }), sensor: mockSensor } as any,
+        {
+          ...createMockAttack({ sourceIp: '10.0.0.5', protocol: 'UDP' }),
+          sensor: mockSensor,
+        } as any,
       ]);
 
       const response = await app.inject({
@@ -360,7 +368,9 @@ describe('Attack API Routes', () => {
       expect(response.statusCode).toBe(400);
       expect(response.json()).toMatchObject({
         error: 'Bad Request',
-        message: expect.stringContaining('limit must be a positive integer between 1 and 100'),
+        message: expect.stringContaining(
+          'limit must be a positive integer between 1 and 100',
+        ),
       });
     });
   });
@@ -378,7 +388,11 @@ describe('Attack API Routes', () => {
         { sourceIp: '10.0.0.5' } as Attack,
       ]);
       prismaMock.attack.findMany.mockResolvedValueOnce([
-        createMockAttack({ country: 'US', latitude: 40.7128, longitude: -74.006 }),
+        createMockAttack({
+          country: 'US',
+          latitude: 40.7128,
+          longitude: -74.006,
+        }),
       ]);
 
       // For CN country
@@ -386,7 +400,11 @@ describe('Attack API Routes', () => {
         { sourceIp: '1.2.3.4' } as Attack,
       ]);
       prismaMock.attack.findMany.mockResolvedValueOnce([
-        createMockAttack({ country: 'CN', latitude: 39.9042, longitude: 116.4074 }),
+        createMockAttack({
+          country: 'CN',
+          latitude: 39.9042,
+          longitude: 116.4074,
+        }),
       ]);
 
       const response = await app.inject({
