@@ -453,3 +453,111 @@ export const updateRuleSourceSchema = {
     },
   },
 } as const;
+
+/**
+ * JSON Schema for getting a rule source
+ */
+export const getRuleSourceSchema = {
+  params: {
+    type: 'object',
+    required: ['id'],
+    properties: {
+      id: {
+        type: 'string',
+        pattern: '^[0-9]+$',
+        description: 'Rule source ID',
+      },
+    },
+  },
+  response: {
+    200: {
+      type: 'object',
+      properties: {
+        id: { type: 'number' },
+        name: { type: 'string' },
+        uri: { type: 'string' },
+        note: { type: 'string' },
+        createdAt: { type: 'string' },
+        updatedAt: { type: 'string' },
+      },
+    },
+  },
+} as const;
+
+/**
+ * JSON Schema for listing rule sources
+ */
+export const listRuleSourcesSchema = {
+  response: {
+    200: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          id: { type: 'number' },
+          name: { type: 'string' },
+          uri: { type: 'string' },
+          note: { type: 'string' },
+          createdAt: { type: 'string' },
+          updatedAt: { type: 'string' },
+        },
+      },
+    },
+  },
+} as const;
+
+/**
+ * JSON Schema for deleting a rule
+ */
+export const deleteRuleSchema = {
+  params: {
+    type: 'object',
+    required: ['id'],
+    properties: {
+      id: {
+        type: 'string',
+        pattern: '^[0-9]+$',
+        description: 'Rule ID',
+      },
+    },
+  },
+  response: {
+    204: {
+      type: 'null',
+    },
+  },
+} as const;
+
+/**
+ * JSON Schema for deleting a rule source
+ */
+export const deleteRuleSourceSchema = {
+  params: {
+    type: 'object',
+    required: ['id'],
+    properties: {
+      id: {
+        type: 'string',
+        pattern: '^[0-9]+$',
+        description: 'Rule source ID',
+      },
+    },
+  },
+  response: {
+    204: {
+      type: 'null',
+    },
+  },
+} as const;
+
+/**
+ * JSON Schema for exporting rules
+ */
+export const exportRulesSchema = {
+  response: {
+    200: {
+      type: 'string',
+      description: 'Snort rule format text file',
+    },
+  },
+} as const;

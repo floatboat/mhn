@@ -175,6 +175,83 @@ Modern Honey Network (MHN) is being rewritten from Python/Flask to TypeScript/No
 
 ---
 
+### ✅ Phase 5: Rules Management (COMPLETE - 60%)
+
+**Overall Progress:** Phases 5A-5D complete (~60% of Phase 5), Phase 5E pending (automation)
+
+**What's Implemented:**
+
+#### Phase 5A: Database Schema ✅ COMPLETE
+- ✅ Rule model with message, classtype, sid, rev, ruleFormat, isActive, notes
+- ✅ Reference model for CVE numbers and rule references
+- ✅ RuleSource model for rule download sources
+- ✅ Proper relationships and cascade deletes
+- ✅ Database migration: `20251122063610_add_rule_models`
+
+#### Phase 5B: Rule Parsing & Validation ✅ COMPLETE
+- ✅ Complete Snort/Suricata rule parser (405 lines)
+- ✅ Rule renderer with template variable substitution
+- ✅ Comprehensive validation suite (344 lines)
+- ✅ Reference extraction from rule text
+- ✅ 91 unit tests for parsing and validation
+
+#### Phase 5C: Service Layer ✅ COMPLETE
+- ✅ Rule service with 20 business logic functions
+- ✅ createRule, getRuleById, listRules, updateRule, deleteRule
+- ✅ Rule versioning (same SID, different rev)
+- ✅ Reference management (add/remove)
+- ✅ Search and filter rules by classtype, status
+- ✅ Rule statistics and analytics
+- ✅ RuleSource CRUD operations
+- ✅ 55 unit tests for service layer
+
+#### Phase 5D: Rule Management API ✅ COMPLETE
+- ✅ 11 HTTP endpoints (6 rule, 5 rulesource)
+- ✅ Request handlers with proper error handling
+- ✅ Request/response schemas with JSON Schema validation
+- ✅ Rule creation, reading, updating, deleting
+- ✅ **Critical:** GET /api/rules.rules - Export active rules in Snort format (for sensors)
+- ✅ RuleSource management endpoints
+- ✅ 22 integration tests
+
+**New Services:**
+- [rule.service.ts](api/src/services/rule.service.ts) - Rule management (843 lines)
+
+**New Handlers & Routes:**
+- [rule.handler.ts](api/src/handlers/rule.handler.ts) - 11 request handlers (437 lines)
+- [rule.route.ts](api/src/routes/api/rule.route.ts) - Route definitions (138 lines)
+
+**New Type Definitions:**
+- Extended [rule.types.ts](api/src/types/rule.types.ts) with request/response types and schemas
+
+**API Endpoints (11 total):**
+- POST /api/rule - Create rule (admin only)
+- GET /api/rule - List rules with filters (api_key required)
+- GET /api/rule/:id - Get single rule (api_key required)
+- PUT /api/rule/:id - Update rule (admin only)
+- DELETE /api/rule/:id - Delete rule (admin only)
+- **GET /api/rules.rules** - Export active rules in Snort format (api_key required) - CRITICAL
+- POST /api/rulesource - Create rule source (admin only)
+- GET /api/rulesource - List rule sources (api_key required)
+- GET /api/rulesource/:id - Get rule source (api_key required)
+- PUT /api/rulesource/:id - Update rule source (admin only)
+- DELETE /api/rulesource/:id - Delete rule source (admin only)
+
+**Database Models Implemented:** 7 of 8 (User, Role, ApiKey, PasswdReset, Sensor, Attack, Rule)
+
+**Lines of Code:** ~4,500+ (including tests)
+
+**Test Coverage:** 517 tests passing, 4 skipped (521 total tests)
+
+#### Phase 5E: Rule Fetching Automation ❌ NOT STARTED
+- ❌ Background job system (node-cron or Bull)
+- ❌ Scheduled rule fetching from RuleSource URIs
+- ❌ Rule file parsing and bulk import
+- ❌ Rule versioning and auto-disable of old revisions
+- ❌ Error handling and retry logic
+
+---
+
 ### 📊 Feature Parity with Legacy System
 
 | Category | Legacy Features | Implemented | Progress |
@@ -182,10 +259,10 @@ Modern Honey Network (MHN) is being rewritten from Python/Flask to TypeScript/No
 | **Authentication** | 14 features | 14 | 100% |
 | **Sensor Management** | 10 features | 6 | 60% |
 | **Attack Data** | 11 features | 7 | 64% |
-| **Rules Management** | 12 features | 0 | 0% |
+| **Rules Management** | 12 features | 7 | 58% |
 | **Deploy Scripts** | 8 features | 0 | 0% |
 | **Integrations** | 5 features | 0 | 0% |
-| **TOTAL** | **60 features** | **27** | **45%** |
+| **TOTAL** | **60 features** | **34** | **57%** |
 
 ---
 
@@ -231,7 +308,8 @@ Modern Honey Network (MHN) is being rewritten from Python/Flask to TypeScript/No
 **Testing Gaps:**
 - ✅ ~~No authentication tests~~ (COMPLETE - Phase 2)
 - ✅ ~~No integration tests for sensors, attacks~~ (COMPLETE - Phases 3 & 4)
-- No integration tests for rules (Phase 5 not started)
+- ✅ ~~No integration tests for rules~~ (COMPLETE - Phase 5D, 22 tests)
+- No integration tests for rule automation/fetching (Phase 5E)
 - No end-to-end tests
 
 **Infrastructure:**
@@ -1153,7 +1231,7 @@ GET /error                     # Test error handling
 
 ---
 
-**Last Updated:** 2025-11-21
-**Current Status:** Phase 4 complete (~45%), Phase 5 (Rules Management) next priority
-**Lines of Code:** ~8,000+ (including tests)
-**Feature Parity:** 27 of 60+ legacy features (45%)
+**Last Updated:** 2025-11-22
+**Current Status:** Phase 5D complete (~57%), Phase 5E (Rule Automation) next priority or Phase 6 (Frontend)
+**Lines of Code:** ~9,500+ (including tests)
+**Feature Parity:** 34 of 60+ legacy features (57%)
