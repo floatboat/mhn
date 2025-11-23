@@ -18,7 +18,7 @@ const activeCronJobs = new Map<string, cron.ScheduledTask>();
  * - Periodic rule fetching (daily at 2 AM UTC)
  * - Retry processing (every 5 minutes)
  */
-export async function ruleFetcherPlugin(fastify: FastifyInstance) {
+async function ruleFetcherPlugin(fastify: FastifyInstance) {
   // Schedule retry processing every 5 minutes
   const retrySchedule = '*/5 * * * *'; // Every 5 minutes
 
@@ -107,3 +107,5 @@ export function getCronJobStatus(jobName: string) {
     nextDate: task.nextDate().toISOString(),
   };
 }
+
+export default ruleFetcherPlugin;
