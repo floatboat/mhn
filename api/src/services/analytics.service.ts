@@ -3,7 +3,7 @@
  * Provides time-series data, trends, leaderboards, and geographic heatmaps
  */
 
-import { mongodb } from '../lib/mongodb';
+import { getMongoDB } from '../lib/mongodb';
 import { prisma } from '../lib/prisma';
 
 /**
@@ -82,7 +82,7 @@ export async function getAttackStats(
   startTime?: Date,
   endTime?: Date,
 ): Promise<AttackStats> {
-  const db = mongodb.connection?.db('attacks');
+  const db = getMongoDB();
   if (!db) {
     throw new Error('MongoDB connection not available');
   }
@@ -127,7 +127,7 @@ export async function getAttackTimeSeries(
   limit = 30,
   startTime?: Date,
 ): Promise<TimeSeriesPoint[]> {
-  const db = mongodb.connection?.db('attacks');
+  const db = getMongoDB();
   if (!db) {
     throw new Error('MongoDB connection not available');
   }
@@ -173,7 +173,7 @@ export async function getAttackTimeSeries(
 
   const results = await db.collection('attack_events').aggregate(pipeline).toArray();
 
-  return results.map(r => ({
+  return results.map((r: any) => ({
     timestamp: r._id,
     count: r.count,
     period,
@@ -187,7 +187,7 @@ export async function getProtocolDistribution(
   startTime?: Date,
   endTime?: Date,
 ): Promise<ProtocolStats[]> {
-  const db = mongodb.connection?.db('attacks');
+  const db = getMongoDB();
   if (!db) {
     throw new Error('MongoDB connection not available');
   }
@@ -213,8 +213,8 @@ export async function getProtocolDistribution(
   const results = await db.collection('attack_events').aggregate(pipeline).toArray();
 
   // Calculate percentages
-  const total = results.reduce((sum, r) => sum + r.count, 0);
-  return results.map(r => ({
+  const total = results.reduce((sum: number, r: any) => sum + r.count, 0);
+  return results.map((r: any) => ({
     protocol: r._id || 'unknown',
     count: r.count,
     percentage: (r.count / total) * 100,
@@ -229,7 +229,7 @@ export async function getTopAttackers(
   startTime?: Date,
   endTime?: Date,
 ): Promise<TopAttacker[]> {
-  const db = mongodb.connection?.db('attacks');
+  const db = getMongoDB();
   if (!db) {
     throw new Error('MongoDB connection not available');
   }
@@ -332,7 +332,7 @@ export async function getSensorStats(
   startTime?: Date,
   endTime?: Date,
 ): Promise<SensorStats[]> {
-  const db = mongodb.connection?.db('attacks');
+  const db = getMongoDB();
   if (!db) {
     throw new Error('MongoDB connection not available');
   }
@@ -426,7 +426,7 @@ export async function getAttacksByCountry(
  * Get attack frequency analysis (attacks per hour of day)
  */
 export async function getHourlyFrequency(startTime?: Date, endTime?: Date) {
-  const db = mongodb.connection?.db('attacks');
+  const db = getMongoDB();
   if (!db) {
     throw new Error('MongoDB connection not available');
   }
@@ -457,7 +457,7 @@ export async function getHourlyFrequency(startTime?: Date, endTime?: Date) {
   const hourlyData = Array(24)
     .fill(0)
     .map((_, hour) => {
-      const found = results.find(r => r._id === hour);
+      const found = results.find((r: any) => r._id === hour);
       return {
         hour,
         count: found?.count || 0,

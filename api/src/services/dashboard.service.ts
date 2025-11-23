@@ -4,7 +4,7 @@
  */
 
 import { prisma } from '../lib/prisma';
-import { mongodb } from '../lib/mongodb';
+import { getMongoDB } from '../lib/mongodb';
 
 /**
  * Sensor status for dashboard
@@ -115,7 +115,7 @@ export async function getSensorStatuses(): Promise<SensorStatusDashboard[]> {
  * Get active/recent threats
  */
 export async function getActiveThreats(limitHours = 1, limit = 100): Promise<ActiveThreat[]> {
-  const db = mongodb.connection?.db('attacks');
+  const db = getMongoDB();
   if (!db) {
     throw new Error('MongoDB connection not available');
   }
@@ -275,7 +275,7 @@ export async function getSensorHealth(sensorId: number): Promise<SensorHealth> {
  * Get attack trends (last N hours)
  */
 export async function getAttackTrends(hours = 24): Promise<Array<{ timestamp: string; count: number }>> {
-  const db = mongodb.connection?.db('attacks');
+  const db = getMongoDB();
   if (!db) {
     throw new Error('MongoDB connection not available');
   }
@@ -304,7 +304,7 @@ export async function getAttackTrends(hours = 24): Promise<Array<{ timestamp: st
 
   const results = await db.collection('attack_events').aggregate(pipeline).toArray();
 
-  return results.map(r => ({
+  return results.map((r: any) => ({
     timestamp: r._id,
     count: r.count,
   }));
@@ -314,12 +314,12 @@ export async function getAttackTrends(hours = 24): Promise<Array<{ timestamp: st
  * Get alerts that should be raised (unusual activity detection)
  */
 export async function getAlerts() {
-  const db = mongodb.connection?.db('attacks');
+  const db = getMongoDB();
   if (!db) {
     throw new Error('MongoDB connection not available');
   }
 
-  const alerts = [];
+  const alerts: any[] = [];
   const now = new Date();
   const hour1 = new Date(now.getTime() - 60 * 60 * 1000);
 
@@ -347,7 +347,7 @@ export async function getAlerts() {
     .toArray();
 
   if (ddosPattern.length > 0) {
-    ddosPattern.forEach(pattern => {
+    ddosPattern.forEach((pattern: any) => {
       alerts.push({
         type: 'DDoS_PATTERN',
         severity: 'critical',
@@ -385,7 +385,7 @@ export async function getAlerts() {
     .toArray();
 
   if (portScanPattern.length > 0) {
-    portScanPattern.forEach(pattern => {
+    portScanPattern.forEach((pattern: any) => {
       alerts.push({
         type: 'PORT_SCAN',
         severity: 'high',
