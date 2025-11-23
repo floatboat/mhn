@@ -153,7 +153,7 @@ export async function downloadRuleFile(
  * Build headers for HTTP request based on authentication config
  */
 function buildHeaders(config: RuleSourceConfig): Record<string, string> {
-  const headers = {
+  const headers: Record<string, string> = {
     'User-Agent': 'MHN-RuleFetcher/1.0',
     ...config.headers,
   };
@@ -190,7 +190,7 @@ async function extractTarGz(buffer: Buffer, sourceUri: string): Promise<string> 
     // Use tar to parse and extract
     await new Promise<void>((resolve, reject) => {
       const gzipStream = zlib.createGunzip();
-      const tarParser = tar.parse();
+      const tarParser = new tar.Parser();
 
       tarParser.on('entry', (entry: any) => {
         // Only process .rules files
