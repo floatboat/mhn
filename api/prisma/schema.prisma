@@ -189,8 +189,32 @@ model RuleSource {
   uri   String  // URL to download rules from
   note  String?
   rules Rule[]
+  fetchJobs RuleFetchJob[] // Track fetch history
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([name])
+}
+
+// Rule fetch job tracking (for scheduled/manual fetches)
+model RuleFetchJob {
+  id            Int      @id @default(autoincrement())
+  source        RuleSource @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+  sourceId      Int
+  status        String   // 'pending', 'in_progress', 'success', 'failed', 'partial_success'
+  rulesImported Int      @default(0)
+  rulesFailed   Int      @default(0)
+  rulesSkipped  Int      @default(0)
+  errorMessage  String?  @db.Text
+  startedAt     DateTime?
+  completedAt   DateTime?
+  lastAttempt   DateTime @default(now())
+  attemptCount  Int      @default(0)
+  nextRetryAt   DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([sourceId])
+  @@index([status])
+  @@index([lastAttempt])
 }
