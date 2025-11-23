@@ -58,7 +58,7 @@ const prisma_1 = require("../lib/prisma");
  */
 async function getAttacksHandler(request, reply) {
     try {
-        const { startDate, endDate, sensorId, sourceIp, protocol, limit, offset, } = request.query;
+        const { startDate, endDate, sensorId, sourceIp, protocol, limit, offset } = request.query;
         // Validate required date parameters
         if (!startDate || !endDate) {
             return reply.status(400).send({

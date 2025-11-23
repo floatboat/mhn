@@ -12,6 +12,12 @@ const role_route_1 = __importDefault(require("./api/role.route"));
 const apikey_route_1 = __importDefault(require("./api/apikey.route"));
 const sensor_route_1 = __importDefault(require("./api/sensor.route"));
 const attack_route_1 = __importDefault(require("./api/attack.route"));
+const rule_route_1 = __importDefault(require("./api/rule.route"));
+const rule_fetch_route_1 = __importDefault(require("./api/rule-fetch.route"));
+const analytics_route_1 = __importDefault(require("./api/analytics.route"));
+const dashboard_route_1 = __importDefault(require("./api/dashboard.route"));
+const export_route_1 = __importDefault(require("./api/export.route"));
+const integration_route_1 = __importDefault(require("./api/integration.route"));
 const errorHandler_1 = __importDefault(require("../plugins/errorHandler"));
 async function routes(fastify) {
     fastify.register(sensible_1.default);
@@ -45,5 +51,11 @@ async function routes(fastify) {
         await fastify.register(apikey_route_1.default);
         await fastify.register(sensor_route_1.default);
         await fastify.register(attack_route_1.default);
+        await fastify.register(rule_route_1.default);
+        await fastify.register(rule_fetch_route_1.default);
+        await fastify.register(analytics_route_1.default);
+        await fastify.register(dashboard_route_1.default);
+        await fastify.register(export_route_1.default);
+        await fastify.register(integration_route_1.default);
     });
 }

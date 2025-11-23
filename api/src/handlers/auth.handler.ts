@@ -261,13 +261,31 @@ export async function resetRequestHandler(
 
       request.log.info({ userId: user.id }, 'Password reset token created');
 
-      // TODO: Send email with reset link
-      // In production, this would send an email like:
-      // https://your-domain.com/reset-password?token=RESET_TOKEN
-      request.log.warn(
-        { resetToken },
-        'Email sending not implemented - reset token logged',
-      );
+      // Send email with reset link if email service is configured
+      try {
+        const { EmailNotificationService } = await import('../services/email-notification.service');
+        const IntegrationService = await import('../services/integration.service');
+
+        const emailConfig = await IntegrationService.getIntegration('email');
+        if (emailConfig && emailConfig.enabled) {
+          const emailService = new EmailNotificationService(emailConfig.config);
+          const resetUrl = `${process.env.WEB_URL || 'http://localhost:3000'}/reset-password?token=${resetToken}`;
+
+          await emailService.sendPasswordResetEmail(user.email, resetUrl);
+          request.log.info({ userId: user.id }, 'Password reset email sent');
+        } else {
+          request.log.warn(
+            { resetToken },
+            'Email service not configured - reset token logged for manual testing',
+          );
+        }
+      } catch (emailError) {
+        // Log error but don't fail the request
+        request.log.error(
+          { error: emailError },
+          'Failed to send password reset email',
+        );
+      }
     } else {
       // Don't reveal that user doesn't exist (security best practice)
       request.log.info({ email }, 'Password reset requested for unknown email');
@@ -354,6 +372,30 @@ export async function resetConfirmHandler(
       { userId: resetRecord.userId },
       'Password reset successful',
     );
+
+    // Send confirmation email if email service is configured
+    try {
+      const { EmailNotificationService } = await import('../services/email-notification.service');
+      const IntegrationService = await import('../services/integration.service');
+
+      const emailConfig = await IntegrationService.getIntegration('email');
+      if (emailConfig && emailConfig.enabled) {
+        const emailService = new EmailNotificationService(emailConfig.config);
+        await emailService.sendPasswordChangeConfirmationEmail(
+          resetRecord.user.email,
+        );
+        request.log.info(
+          { userId: resetRecord.userId },
+          'Password change confirmation email sent',
+        );
+      }
+    } catch (emailError) {
+      // Log error but don't fail the request
+      request.log.error(
+        { error: emailError },
+        'Failed to send confirmation email',
+      );
+    }
 
     return reply.status(200).send({
       message: 'Password reset successfully',

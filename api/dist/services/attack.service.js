@@ -399,9 +399,7 @@ async function getTopAttackers(limit = 10, startDate, endDate) {
         // Get unique sensors hit
         const sensorsHit = Array.from(new Set(attacks.map((a) => a.sensor.name))).sort();
         // Get geo data from first attack with geo info
-        const geoAttack = attacks.find((a) => a.country !== null &&
-            a.latitude !== null &&
-            a.longitude !== null);
+        const geoAttack = attacks.find((a) => a.country !== null && a.latitude !== null && a.longitude !== null);
         topAttackers.push({
             sourceIp: ipCount.sourceIp,
             country: geoAttack?.country || undefined,

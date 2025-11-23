@@ -12,6 +12,8 @@ import ruleRoutes from './api/rule.route';
 import ruleFetchRoutes from './api/rule-fetch.route';
 import analyticsRoutes from './api/analytics.route';
 import dashboardRoutes from './api/dashboard.route';
+import exportRoutes from './api/export.route';
+import integrationRoutes from './api/integration.route';
 import errorHandler from '../plugins/errorHandler';
 
 export default async function routes(fastify: FastifyInstance) {
@@ -54,5 +56,7 @@ export default async function routes(fastify: FastifyInstance) {
     await fastify.register(ruleFetchRoutes);
     await fastify.register(analyticsRoutes);
     await fastify.register(dashboardRoutes);
+    await fastify.register(exportRoutes);
+    await fastify.register(integrationRoutes);
   });
 }

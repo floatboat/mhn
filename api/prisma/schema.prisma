@@ -218,3 +218,66 @@ model RuleFetchJob {
   @@index([status])
   @@index([lastAttempt])
 }
+
+// Integration model for external system configurations
+// Stores credentials and settings for Splunk, ArcSight, Elasticsearch, HPFeeds, Email
+model Integration {
+  id           Int      @id @default(autoincrement())
+  type         String   // 'splunk', 'arcsight', 'elasticsearch', 'hpfeeds', 'email'
+  name         String?  // User-friendly name for the integration
+  config       Json     // Encrypted configuration (host, port, credentials, etc.)
+  enabled      Boolean  @default(true)
+  lastTestAt   DateTime? // Track when integration was last tested
+  testStatus   String   @default("untested") // 'untested', 'success', 'failed'
+  testMessage  String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  logs         IntegrationLog[]
+
+  @@unique([type])  // Only one configuration per integration type
+  @@index([type])
+  @@index([enabled])
+}
+
+// Integration event log for tracking successful/failed forwards
+model IntegrationLog {
+  id            Int      @id @default(autoincrement())
+  integration   Integration @relation(fields: [integrationId], references: [id], onDelete: Cascade)
+  integrationId Int
+  eventType     String   // 'attack', 'alert', 'stats', etc.
+  status        String   // 'success', 'failed', 'retrying'
+  eventData     Json?    // The data that was sent
+  errorMessage  String?
+  retryCount    Int      @default(0)
+  createdAt     DateTime @default(now())
+
+  @@index([integrationId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+// Alert configuration and history
+model Alert {
+  id           Int      @id @default(autoincrement())
+  type         String   // 'ddos', 'port_scan', 'high_severity', 'custom'
+  name         String?
+  description  String?
+  enabled      Boolean  @default(true)
+
+  // Alert trigger conditions
+  threshold    Int      // Number of events to trigger alert
+  timeWindow   Int      // Time window in seconds
+
+  // Alert recipients and actions
+  sendEmail    Boolean  @default(false)
+  emailAddresses String? // Comma-separated email list or JSON array
+
+  // History
+  lastTriggeredAt DateTime?
+  triggerCount Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([type])
+  @@index([enabled])
+}

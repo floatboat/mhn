@@ -274,9 +274,7 @@ async function confirmUserEmail(id) {
  * @returns Array of user objects without passwords
  */
 async function getAllUsers(includeInactive = true) {
-    const where = includeInactive
-        ? {}
-        : { active: true };
+    const where = includeInactive ? {} : { active: true };
     return prisma_1.prisma.user.findMany({
         where,
         select: {
