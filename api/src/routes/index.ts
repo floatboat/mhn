@@ -43,6 +43,133 @@ export default async function routes(fastify: FastifyInstance) {
     handler: helloHandler,
   });
 
+  // Health check endpoints
+  fastify.route({
+    method: 'GET',
+    url: '/health',
+    schema: {
+      description: 'Basic health check - returns 200 if API is running',
+      tags: ['health'],
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            status: { type: 'string' },
+            timestamp: { type: 'string' },
+          },
+        },
+      },
+    },
+    handler: async function (request, reply) {
+      return { status: 'ok', timestamp: new Date().toISOString() };
+    },
+  });
+
+  fastify.route({
+    method: 'GET',
+    url: '/liveness',
+    schema: {
+      description: 'Kubernetes liveness probe - returns 200 if API is running',
+      tags: ['health'],
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            status: { type: 'string' },
+          },
+        },
+      },
+    },
+    handler: async function (request, reply) {
+      return { status: 'alive' };
+    },
+  });
+
+  fastify.route({
+    method: 'GET',
+    url: '/readiness',
+    schema: {
+      description: 'Kubernetes readiness probe - checks if dependencies are available',
+      tags: ['health'],
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            status: { type: 'string' },
+            checks: {
+              type: 'object',
+              properties: {
+                database: { type: 'boolean' },
+                mongodb: { type: 'boolean' },
+                redis: { type: 'boolean' },
+              },
+            },
+          },
+        },
+        503: {
+          type: 'object',
+          properties: {
+            status: { type: 'string' },
+            checks: { type: 'object' },
+            error: { type: 'string' },
+          },
+        },
+      },
+    },
+    handler: async function (request, reply) {
+      const checks: Record<string, boolean> = {};
+
+      try {
+        // Check PostgreSQL
+        const prisma = (fastify as any).prisma;
+        if (prisma) {
+          await prisma.$queryRaw`SELECT 1`;
+          checks.database = true;
+        }
+      } catch (err) {
+        checks.database = false;
+        fastify.log.warn('Database health check failed');
+      }
+
+      try {
+        // Check MongoDB
+        const mongoClient = (fastify as any).mongoClient;
+        if (mongoClient) {
+          const admin = mongoClient.db('admin');
+          await admin.command({ ping: 1 });
+          checks.mongodb = true;
+        }
+      } catch (err) {
+        checks.mongodb = false;
+        fastify.log.warn('MongoDB health check failed');
+      }
+
+      try {
+        // Check Redis
+        const redis = (fastify as any).redis;
+        if (redis) {
+          await redis.ping();
+          checks.redis = true;
+        }
+      } catch (err) {
+        checks.redis = false;
+        fastify.log.warn('Redis health check failed');
+      }
+
+      const allHealthy = Object.values(checks).every((v) => v === true || v === undefined);
+
+      if (!allHealthy) {
+        return reply.status(503).send({
+          status: 'not_ready',
+          checks,
+          error: 'Some dependencies are not ready',
+        });
+      }
+
+      return { status: 'ready', checks };
+    },
+  });
+
   // API routes with error handler
   await fastify.register(async (fastify) => {
     await fastify.register(errorHandler);

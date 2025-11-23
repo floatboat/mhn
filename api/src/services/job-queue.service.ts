@@ -10,6 +10,7 @@ import ArcSightForwarderService from './integrations/arcsight-forwarder.service'
 import ElasticsearchForwarderService from './integrations/elasticsearch-forwarder.service';
 import HPFeedsLoggerService from './integrations/hpfeeds-logger.service';
 import IntegrationService from './integration.service';
+import { globalLogger } from '../lib/logger';
 
 // Redis URL (defaults to local Redis)
 const REDIS_URL = process.env.REDIS_URL || 'redis://localhost:6379';
@@ -48,11 +49,11 @@ export async function configureAttackEventProcessor() {
 
   // Event listeners
   attackEventQueue.on('failed', (job, err) => {
-    console.error(`Attack event job ${job.id} failed:`, err.message);
+    globalLogger.error(`Attack event job ${job.id} failed: ${err.message}`);
   });
 
   attackEventQueue.on('completed', (job) => {
-    console.log(`Attack event job ${job.id} completed`);
+    globalLogger.info(`Attack event job ${job.id} completed`);
   });
 }
 
@@ -75,11 +76,11 @@ export async function configureSecurityAlertProcessor() {
 
   // Event listeners
   securityAlertQueue.on('failed', (job, err) => {
-    console.error(`Security alert job ${job.id} failed:`, err.message);
+    globalLogger.error(`Security alert job ${job.id} failed: ${err.message}`);
   });
 
   securityAlertQueue.on('completed', (job) => {
-    console.log(`Security alert job ${job.id} completed`);
+    globalLogger.info(`Security alert job ${job.id} completed`);
   });
 }
 
@@ -102,11 +103,11 @@ export async function configureStatisticsProcessor() {
 
   // Event listeners
   statisticsQueue.on('failed', (job, err) => {
-    console.error(`Statistics job ${job.id} failed:`, err.message);
+    globalLogger.error(`Statistics job ${job.id} failed: ${err.message}`);
   });
 
   statisticsQueue.on('completed', (job) => {
-    console.log(`Statistics job ${job.id} completed`);
+    globalLogger.info(`Statistics job ${job.id} completed`);
   });
 }
 
@@ -146,7 +147,7 @@ async function forwardAttackEvent(attackData: any) {
           break;
 
         default:
-          console.warn(`Unknown integration type: ${integration.type}`);
+          globalLogger.warn(`Unknown integration type: ${integration.type}`);
       }
 
       await IntegrationService.logIntegrationEvent(
@@ -174,10 +175,8 @@ async function forwardAttackEvent(attackData: any) {
   // Log any failures
   results.forEach((result, index) => {
     if (result.status === 'rejected') {
-      console.error(
-        `Failed to forward to ${integrations[index].type}:`,
-        result.reason
-      );
+      const error = result.reason instanceof Error ? result.reason.message : String(result.reason);
+      globalLogger.error(`Failed to forward to ${integrations[index].type}: ${error}`);
     }
   });
 }
@@ -218,7 +217,7 @@ async function sendSecurityAlerts(
  * Export statistics to integrations
  */
 async function exportStatistics(period: 'hourly' | 'daily' | 'weekly' | 'monthly') {
-  console.log(`Exporting ${period} statistics...`);
+  globalLogger.info(`Exporting ${period} statistics...`);
   // This would be implemented with actual statistics calculation
   // from the analytics service
 }
