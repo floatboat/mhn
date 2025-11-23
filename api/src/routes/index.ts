@@ -9,6 +9,7 @@ import apikeyRoutes from './api/apikey.route';
 import sensorRoutes from './api/sensor.route';
 import attackRoutes from './api/attack.route';
 import ruleRoutes from './api/rule.route';
+import ruleFetchRoutes from './api/rule-fetch.route';
 import errorHandler from '../plugins/errorHandler';
 
 export default async function routes(fastify: FastifyInstance) {
@@ -48,5 +49,6 @@ export default async function routes(fastify: FastifyInstance) {
     await fastify.register(sensorRoutes);
     await fastify.register(attackRoutes);
     await fastify.register(ruleRoutes);
+    await fastify.register(ruleFetchRoutes);
   });
 }
