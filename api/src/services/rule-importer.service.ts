@@ -7,11 +7,8 @@ import { prisma } from '../lib/prisma';
 import {
   parseSnortRule,
   extractReferences,
-  InvalidRuleError,
-  ParsedRule,
 } from '../lib/rule-parser';
-import { RuleValidationError, RuleExistsError } from './rule.service';
-import { Prisma } from '@prisma/client';
+import { RuleValidationError } from './rule.service';
 
 /**
  * Custom error for import operations
@@ -55,7 +52,7 @@ export interface ImportResult {
   failed: Array<{
     lineNumber: number;
     ruleText: string;
-    error: string;
+    reason: string;
   }>;
   startTime: Date;
   endTime: Date;
@@ -138,7 +135,7 @@ export async function importRulesFromText(
           validationErrors.push({
             lineNumber: rule.lineNumber,
             ruleText: rule.rawRule.substring(0, 100),
-            error: error instanceof Error ? error.message : String(error),
+            reason: error instanceof Error ? error.message : String(error),
           });
         }
       }
@@ -245,7 +242,7 @@ export async function importRulesFromText(
         results.failed.push({
           lineNumber: rule.lineNumber,
           ruleText: rule.rawRule.substring(0, 100),
-          error: errorMessage,
+          reason: errorMessage,
         });
 
         // If rollback enabled, stop at first error

@@ -2,6 +2,7 @@ import { FastifyInstance, FastifyPluginOptions } from 'fastify';
 import path from 'node:path';
 import AutoLoad from '@fastify/autoload';
 import { LoggerOptions } from 'pino';
+import { initializeDefaultScripts } from './services/default-scripts-loader.service';
 
 interface EnvToLogger {
   [key: string]: LoggerOptions | boolean;
@@ -29,6 +30,11 @@ export default async function (
   fastify.register(AutoLoad, {
     dir: path.join(__dirname, 'routes'),
     options: Object.assign({}, opts),
+  });
+
+  // Initialize default deploy scripts after all plugins and routes are loaded
+  fastify.addHook('onReady', async () => {
+    await initializeDefaultScripts();
   });
 }
 

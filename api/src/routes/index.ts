@@ -14,6 +14,7 @@ import analyticsRoutes from './api/analytics.route';
 import dashboardRoutes from './api/dashboard.route';
 import exportRoutes from './api/export.route';
 import integrationRoutes from './api/integration.route';
+import { deployScriptRoutes } from './api/deployscript.route';
 import errorHandler from '../plugins/errorHandler';
 
 export default async function routes(fastify: FastifyInstance) {
@@ -185,5 +186,6 @@ export default async function routes(fastify: FastifyInstance) {
     await fastify.register(dashboardRoutes);
     await fastify.register(exportRoutes);
     await fastify.register(integrationRoutes);
+    await fastify.register(deployScriptRoutes);
   });
 }
